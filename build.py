@@ -48,7 +48,7 @@ def build(pkg, repo=None, pkgrel=None):
     if pkg in plain_change_list:
         run(["bash", str(recipes_dir / "plain-change.bash"), pkgbuild_path],
             cwd=sources_dir, check=True)
-    elif pkg in plain_autoconf_list:
+    if pkg in plain_autoconf_list:
         run(["bash", str(recipes_dir / "plain-autoconf.bash"),
             pkgbuild_path], cwd=sources_dir, check=True)
 

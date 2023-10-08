@@ -1,0 +1,116 @@
+#!/bin/bash
+
+set -eo pipefail
+
+source /usr/share/makepkg/util/message.sh
+colorize
+
+
+#
+# Config
+#
+
+remote_dir="/data/home/shell/stage2"
+repo_dir="/home/kxxt/Workspaces/linearch/repos"
+
+#
+# Functions
+#
+
+fail() {
+    error "$1" && exit 1
+}
+
+#
+# Init & Sanity checks
+#
+
+if [[ $# -eq 1 ]]; then
+    unset move_to_repo
+elif [[ $# -eq 2 ]]; then
+    [[ "$(basename "$2")" -ne "$2" ]] && fail "Error: basename $2 != $2"
+    move_to_repo="$2"
+    target_repo_dir="$repo_dir/$2"
+    ! [[ -d "$target_repo_dir" ]] && fail "Not a directory: $target_repo_dir"
+else
+    fail "Usage: $0 <pkgbuild dir> [repo]"
+fi
+
+pkgbuild_dir="$1"
+(! [[ -d "$pkgbuild_dir" ]] || ! [[ -d "$repo_dir" ]] ) && fail "Not a directory: $pkgbuild_dir"
+pkgbuild_dir_basename="$(basename "$pkgbuild_dir")"
+remote_pkgbuild_dir="$remote_dir/$pkgbuild_dir_basename"
+
+pkgbuild_path="$1/PKGBUILD"
+! [[ -f "$pkgbuild_path" ]] && fail "Not such file: $pkgbuild_path"
+
+
+device_count=$(( $(adb devices | wc -l) - 2 ))
+test $device_count -ne 1 && fail "$device_count devices connected! Expected 1 exactly!"
+
+
+#
+# Push files to remote
+#
+if [[ -z $NOPUSH ]]; then
+    msg "Pushing files to remote"
+    adb push --sync "$pkgbuild_dir" "$remote_dir"
+else
+    warning "Skipping push"
+fi
+
+
+#
+# Clean remote
+#
+
+if [[ -z $NOCLEAN ]]; then
+    msg "Cleaning remote built packages"
+    adb shell rm -rf "$remote_pkgbuild_dir/*.pkg.tar.{gz,xz,zst}"
+    msg "Cleaning remote srcdir and pkgdir"
+    adb shell rm -rf "$remote_pkgbuild_dir/{src,pkg}"
+else
+    warning "Skip cleaning of srcdir and pkgdir"
+fi
+
+#
+# Build package
+#
+if [[ -z $NOBUILD ]]; then
+    msg "Building package"
+    # adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && makepkg -L --skippgpcheck --nocheck -s $MAKEPKG_FLAGS\""
+    adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && extra-aarch64-build -- -- --skippgpcheck --nocheck $MAKEPKG_FLAGS\""
+else
+    warning "Skip build"
+fi
+
+#
+# Pull packages and logs
+#
+msg "Pulling logs"
+adb shell /data/usr/bin/bash -c "\"find $remote_pkgbuild_dir -type f -maxdepth 1 \( -name '*.log' -o -name '*.log.*'\" \)" | tr '\r' ' ' | xargs -r -i adb pull "{}" "$pkgbuild_dir"
+
+msg "Pulling packages"
+built_packages=$(adb shell /data/usr/bin/bash -c "\"find $remote_pkgbuild_dir -type f -maxdepth 1 \( -name '*.pkg.tar.zst' -o -name '*.pkg.tar.xz' \) || true\"" | tr '\r' ' ')
+echo "$built_packages" | xargs -r -i adb pull "{}" "$pkgbuild_dir"
+built_packages=$(python -c "import sys
+import os
+for line in sys.stdin.readlines():
+    if line.strip() != '':
+        os.system(f'basename -- {line}')" <<< "$built_packages")
+
+if [[ -z "$built_packages" ]]; then
+    error "No packages are built!"
+else
+    if [[ -n "$move_to_repo"  ]]; then
+        msg "Moving built packages to repo"
+        # echo "$built_packages" | xargs -r basename
+        echo "$built_packages" | xargs -r -i mv "$pkgbuild_dir/{}" "$target_repo_dir"
+        msg "Adding built packages to $move_to_repo repository"
+        echo "$built_packages" | xargs -r -i repo-add -n -R -p "$target_repo_dir/$move_to_repo.db.tar.gz" "$target_repo_dir/{}"
+    else
+        warning "Not adding built package to repo"
+    fi
+
+    msg "Success!"
+fi

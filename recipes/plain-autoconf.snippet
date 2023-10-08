@@ -1,0 +1,32 @@
+_pfa_prefix_to_add=$(cat <<'EOF'
+    shopt -s nullglob
+    for _pfa_cfg in */configure; do
+        echo "Changing shebang of $_pfa_cfg"
+        sed -i '1s|.*|#!/data/usr/bin/sh|' "$_pfa_cfg"
+    done
+    for _pfa_cfg in */**/Makefile{,.in{,.in}}; do
+        echo "Changing SHELL of $_pfa_cfg"
+        sed -i 's|SHELL = /bin/sh|SHELL = /data/usr/bin/sh|' "$_pfa_cfg"
+    done
+EOF
+)
+_pfa_suffix_to_add=$(cat <<'EOF'
+    # Nothing to do
+EOF
+)
+
+if [[ $(type -t prepare) == function ]]; then
+    _pfa_prepare=$(declare -f prepare)
+    _pfa_prepare=${_pfa_prepare#*\{}
+    _pfa_prepare=${_pfa_prepare%\}}
+    eval "prepare () {
+    $_pfa_prefix_to_add
+    $_pfa_prepare
+    $_pfa_suffix_to_add
+    }"
+else
+    eval "prepare () {
+        $_pfa_prefix_to_add
+        $_pfa_suffix_to_add
+    }"
+fi

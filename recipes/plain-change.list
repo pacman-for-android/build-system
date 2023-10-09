@@ -9,5 +9,8 @@ gzip
 cython
 cython0
 pcre2
+pcre
 asciidoctor
 jq
+itstool
+parallel

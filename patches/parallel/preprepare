@@ -1,0 +1,7 @@
+(cd "$pkgbase-$pkgver";
+  sed -i '1s|.*|#!/data/usr/bin/env perl|' src/{parallel,sem};
+  sed -i '1s|.*|#!/data/usr/bin/perl -w|' src/{niceload,sql};
+  sed -i '1s|.*|#!/data/usr/bin/perl|' src/{parcat,parsort};
+  sed -i '1s|.*|#!/data/usr/bin/env bash|' src/parset;
+  sed -i '1s|#!/usr/bin/env |#!/data/usr/bin/env |' src/env_parallel{,.*sh};
+)

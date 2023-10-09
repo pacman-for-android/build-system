@@ -6,5 +6,8 @@ diffutils
 debugedit
 db
 gzip
+pcre
 pcre2
 jq
+itstool
+parallel

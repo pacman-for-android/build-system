@@ -1,12 +1,12 @@
 _pfa_prefix_to_add=$(cat <<'EOF'
     shopt -s nullglob
-    for _pfa_cfg in */configure; do
+    for _pfa_cfg in */{,**/}configure; do
         echo "Changing shebang of $_pfa_cfg"
         sed -i '1s|.*|#!/data/usr/bin/sh|' "$_pfa_cfg"
     done
-    for _pfa_cfg in */**/Makefile{,.in{,.in}}; do
+    for _pfa_cfg in */{,**/}Makefile{,-*,.*}; do
         echo "Changing SHELL of $_pfa_cfg"
-        sed -i 's|SHELL = /bin/sh|SHELL = /data/usr/bin/sh|' "$_pfa_cfg"
+        sed -i 's|SHELL[[:space:]]*=[[:space:]]*/bin/sh|SHELL = /data/usr/bin/sh|' "$_pfa_cfg"
     done
 EOF
 )

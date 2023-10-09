@@ -1,0 +1,4 @@
+(cd '${pkgname}-${pkgver}';
+  sed -i '1s|.*|#!/data/usr/bin/sh|' tests/bison.in src/yacc.in build-aux/{config.rpath,git-version-gen,update-copyright,reloc-ldflags,mdate-sh}\
+   build-aux/{config.libpath,announce-gen,javacomp.sh.in,move-if-change,gitlog-to-changelog,test-driver,compile,vc-list-files,config.sub,do-release-commit-and-tag} \
+   build-aux/{gnu-web-doc-update,missing,javaexec.sh.in,depcomp,gnupload,gendocs.sh,useless-if-before-free,install-sh,install-reloc,libtool-reloc,ylwrap,prefix-gnulib-mk})

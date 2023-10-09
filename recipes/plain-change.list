@@ -14,3 +14,7 @@ asciidoctor
 jq
 itstool
 parallel
+oniguruma
+maturin
+ripgrep
+bison

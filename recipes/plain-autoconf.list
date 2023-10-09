@@ -11,3 +11,5 @@ pcre2
 jq
 itstool
 parallel
+oniguruma
+bison

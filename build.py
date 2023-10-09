@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("pkg")
 parser.add_argument("--repo", default=None)
 parser.add_argument("--pkgrel", default=None)
+parser.add_argument("--chroot", default=None)
 
 
 def read_list(list_file):
@@ -40,7 +41,7 @@ def patch_source(pkg):
         print("No patch for", pkg)
 
 
-def build(pkg, repo=None, pkgrel=None):
+def build(pkg, repo=None, pkgrel=None, chroot=None):
     print("Building", pkg, "...")
     init_source(pkg)
     patch_source(pkg)
@@ -57,10 +58,13 @@ def build(pkg, repo=None, pkgrel=None):
             pkg, pkgrel], cwd=sources_dir, check=True)
 
     run(["bash", str(recipes_dir / "fix-arch.bash"), pkg], check=True)
+    env = {}
+    if chroot is not None:
+        env['MAKECHROOTPKG_FLAGS'] = f'-l {chroot}'
     run(["bash", str(repo_root / "adbuild"), pkg] +
-        ([repo] if repo else []), cwd=sources_dir, check=True)
+        ([repo] if repo else []), cwd=sources_dir, check=True, env=env)
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    build(args.pkg, args.repo, args.pkgrel)
+    build(args.pkg, args.repo, args.pkgrel, args.chroot)

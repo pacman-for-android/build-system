@@ -79,7 +79,7 @@ fi
 if [[ -z $NOBUILD ]]; then
     msg "Building package"
     # adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && makepkg -L --skippgpcheck --nocheck -s $MAKEPKG_FLAGS\""
-    adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && extra-aarch64-build -- -- --skippgpcheck --nocheck $MAKEPKG_FLAGS\""
+    adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && extra-aarch64-build -- $MAKECHROOTPKG_FLAGS -- --skippgpcheck --nocheck $MAKEPKG_FLAGS\""
 else
     warning "Skip build"
 fi
@@ -102,6 +102,12 @@ for line in sys.stdin.readlines():
 if [[ -z "$built_packages" ]]; then
     error "No packages are built!"
 else
+    while IFS= read -r package; do
+        msg "Validating $package"
+        if pacman -Qlpq "$pkgbuild_dir/$package" | grep -v /data &> /dev/null; then
+            fail "Invalid package $package contains paths that does not start with /data"
+        fi
+    done <<< "$built_packages"
     if [[ -n "$move_to_repo"  ]]; then
         msg "Moving built packages to repo"
         # echo "$built_packages" | xargs -r basename

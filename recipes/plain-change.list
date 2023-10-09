@@ -1,2 +1,10 @@
 attr
 python-attrs
+acl
+asciidoc
+diffutils
+debugedit
+db
+gzip
+cython
+pcre2

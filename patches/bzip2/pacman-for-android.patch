@@ -1,0 +1,65 @@
+diff --git PKGBUILD PKGBUILD
+index 2fc7dae..6827334 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -14,7 +14,7 @@ source=(https://sourceware.org/pub/bzip2/$pkgname-$pkgver.tar.gz{,.sig}
+         bzip2.pc)
+ sha256sums=('ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269'
+             'SKIP'
+-            'eca9d8cd6376df1fb5442667c603032023fb21d8d183684550da0b96ade39654')
++            '3ec6b079ab9f663c10376e5fea7dc0176cf6b297c10f317d437e497678bf64c0')
+ validpgpkeys=('EC3CFE88F6CA0788774F5C1D1AA44BE649DE760A') # Mark Wielaard <mark@klomp.org>
+ 
+ prepare() {
+@@ -38,24 +38,24 @@ check() {
+ package() {
+   cd $pkgname-$pkgver
+ 
+-  install -dm755 "$pkgdir"/usr/{bin,lib,include,share/man/man1}
++  install -dm755 "$pkgdir"/data/usr/{bin,lib,include,share/man/man1}
+ 
+-  install -m755 bzip2-shared "$pkgdir"/usr/bin/bzip2
+-  install -m755 bzip2recover bzdiff bzgrep bzmore "$pkgdir"/usr/bin
+-  ln -sf bzip2 "$pkgdir"/usr/bin/bunzip2
+-  ln -sf bzip2 "$pkgdir"/usr/bin/bzcat
++  install -m755 bzip2-shared "$pkgdir"/data/usr/bin/bzip2
++  install -m755 bzip2recover bzdiff bzgrep bzmore "$pkgdir"/data/usr/bin
++  ln -sf bzip2 "$pkgdir"/data/usr/bin/bunzip2
++  ln -sf bzip2 "$pkgdir"/data/usr/bin/bzcat
+ 
+-  cp -a libbz2.so* "$pkgdir"/usr/lib
+-  ln -s libbz2.so.$pkgver "$pkgdir"/usr/lib/libbz2.so
+-  ln -s libbz2.so.$pkgver "$pkgdir"/usr/lib/libbz2.so.1 # For compatibility with some other distros
++  cp -a libbz2.so* "$pkgdir"/data/usr/lib
++  ln -s libbz2.so.$pkgver "$pkgdir"/data/usr/lib/libbz2.so
++  ln -s libbz2.so.$pkgver "$pkgdir"/data/usr/lib/libbz2.so.1 # For compatibility with some other distros
+ 
+-  install -m644 bzlib.h "$pkgdir"/usr/include/
++  install -m644 bzlib.h "$pkgdir"/data/usr/include/
+ 
+-  install -m644 bzip2.1 "$pkgdir"/usr/share/man/man1/
+-  ln -sf bzip2.1 "$pkgdir"/usr/share/man/man1/bunzip2.1
+-  ln -sf bzip2.1 "$pkgdir"/usr/share/man/man1/bzcat.1
+-  ln -sf bzip2.1 "$pkgdir"/usr/share/man/man1/bzip2recover.1
++  install -m644 bzip2.1 "$pkgdir"/data/usr/share/man/man1/
++  ln -sf bzip2.1 "$pkgdir"/data/usr/share/man/man1/bunzip2.1
++  ln -sf bzip2.1 "$pkgdir"/data/usr/share/man/man1/bzcat.1
++  ln -sf bzip2.1 "$pkgdir"/data/usr/share/man/man1/bzip2recover.1
+ 
+-  install -Dm644 bzip2.pc -t "$pkgdir"/usr/lib/pkgconfig
+-  install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/${pkgname}/LICENSE
++  install -Dm644 bzip2.pc -t "$pkgdir"/data/usr/lib/pkgconfig
++  install -Dm644 LICENSE "$pkgdir"/data/usr/share/licenses/${pkgname}/LICENSE
+ }
+diff --git bzip2.pc bzip2.pc
+index a4dd682..2a15a19 100644
+--- bzip2.pc
++++ bzip2.pc
+@@ -1,5 +1,5 @@
+-prefix=/usr
+-exec_prefix=/usr
++prefix=/data/usr
++exec_prefix=/data/usr
+ bindir=${exec_prefix}/bin
+ libdir=${exec_prefix}/lib
+ includedir=${prefix}/include

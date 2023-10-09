@@ -1,0 +1,15 @@
+if [[ $(type -t prepare) == function ]]; then
+    _pfa_prepare=$(declare -f prepare)
+    _pfa_prepare=${_pfa_prepare#*\{}
+    _pfa_prepare=${_pfa_prepare%\}}
+    eval "prepare () {
+    @@_pfa_preprepare@@
+    $_pfa_prepare
+    @@_pfa_postprepare@@
+    }"
+else
+    eval "prepare () {
+        @@_pfa_preprepare@@
+        @@_pfa_postprepare@@
+    }"
+fi

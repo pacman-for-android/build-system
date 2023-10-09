@@ -1,0 +1,1 @@
+(cd "${pkgname}-${pkgver}" && sed -i '1s|.*|#!/data/usr/bin/sh|' scripts/version)

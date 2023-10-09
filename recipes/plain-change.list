@@ -7,4 +7,7 @@ debugedit
 db
 gzip
 cython
+cython0
 pcre2
+asciidoctor
+jq

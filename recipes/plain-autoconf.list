@@ -7,3 +7,4 @@ debugedit
 db
 gzip
 pcre2
+jq

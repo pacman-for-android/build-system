@@ -1,0 +1,30 @@
+--- compat.h.orig	2023-08-27 11:37:00.568004494 +0800
++++ compat.h	2023-08-27 11:36:21.441336079 +0800
+@@ -95,11 +95,11 @@
+ #endif
+ 
+ #ifndef _PATH_BSHELL
+-#define _PATH_BSHELL	"/bin/sh"
++#define _PATH_BSHELL	"/data/usr/bin/sh"
+ #endif
+ 
+ #ifndef _PATH_TMP
+-#define _PATH_TMP	"/tmp/"
++#define _PATH_TMP	"/data/local/tmp/"
+ #endif
+ 
+ #ifndef _PATH_DEVNULL
+@@ -115,11 +115,11 @@
+ #endif
+ 
+ #ifndef _PATH_DEFPATH
+-#define _PATH_DEFPATH	"/usr/bin:/bin"
++#define _PATH_DEFPATH	"/data/usr/bin"
+ #endif
+ 
+ #ifndef _PATH_VI
+-#define _PATH_VI	"/usr/bin/vi"
++#define _PATH_VI	"/data/usr/bin/vi"
+ #endif
+ 
+ #ifndef __OpenBSD__

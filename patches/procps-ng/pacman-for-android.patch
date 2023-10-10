@@ -1,0 +1,22 @@
+diff --git PKGBUILD PKGBUILD
+index ae13c76..43a5082 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -11,8 +11,7 @@ pkgdesc='Utilities for monitoring your system and its processes'
+ url='https://gitlab.com/procps-ng/procps'
+ license=(GPL LGPL)
+ arch=(x86_64)
+-depends=(glibc ncurses libncursesw.so systemd-libs)
+-makedepends=(systemd)
++depends=(glibc ncurses libncursesw.so)
+ conflicts=(procps sysvinit-tools)
+ provides=(procps sysvinit-tools libproc2.so)
+ replaces=(procps sysvinit-tools)
+@@ -48,7 +47,6 @@ build() {
+     --bindir=/usr/bin \
+     --sbindir=/usr/bin \
+     --enable-watch8bit \
+-    --with-systemd \
+     --disable-modern-top \
+     --disable-kill
+ 

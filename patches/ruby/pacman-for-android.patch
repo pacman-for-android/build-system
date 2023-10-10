@@ -1,0 +1,75 @@
+diff --git PKGBUILD PKGBUILD
+index d0d3da8..956e07a 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,21 +6,24 @@
+ # Contributor: John Proctor <jproctor@prium.net>
+ # Contributor: Jeramy Rutley <jrutley@gmail.com>
+ 
+-pkgname=(ruby ruby-docs ruby-stdlib ruby-bundledgems)
++pkgname=(ruby ruby-stdlib ruby-bundledgems)
+ pkgver=3.0.6
+ pkgrel=1
+ arch=(x86_64)
+ url='https://www.ruby-lang.org/en/'
+ license=(BSD custom)
+-makedepends=(doxygen gdbm graphviz libffi libyaml openssl ttf-dejavu tk)
++makedepends=(doxygen gdbm libffi libyaml openssl)
+ options=(!emptydirs !lto) # Disable LTO until fixes for https://bugs.ruby-lang.org/issues/18062 released
+ _osslver=3.0.0
+ source=(https://cache.ruby-lang.org/pub/ruby/${pkgver:0:3}/ruby-${pkgver}.tar.xz
+-        ruby-openssl-$_osslver.tar.xz::https://github.com/ruby/openssl/archive/refs/tags/v$_osslver.tar.gz)
++        ruby-openssl-$_osslver.tar.xz::https://github.com/ruby/openssl/archive/refs/tags/v$_osslver.tar.gz
++        ruby-fix-bin-sh.patch)
+ sha512sums=('abbf883cd9f3ddbd171df8f8c3cd35d930623c4c01a5e01387de0aee9811cca7604b82163e18e04f809773bf1ca5a450f13f62f3db14f191f610e116ae4fa6f8'
+-            '076d2924b61c4f7704b47718a33732fb5285a3af39f328ed9e83add36589da99dfae73b3e893398fc3f2a74dcbead0b66edc682040fa1b48f9530894c7187f95')
++            '076d2924b61c4f7704b47718a33732fb5285a3af39f328ed9e83add36589da99dfae73b3e893398fc3f2a74dcbead0b66edc682040fa1b48f9530894c7187f95'
++            'cc9dbafe8b4e043e175fefefc92311851442bf74e4d8512b54a234a1eebe6e29682c650476df2b74fbec2d412cb29ac8eb926b4ee91cbe7b713be3b52ae98908')
+ b2sums=('e1fca86cdf267fc2289ef4d605fdf0023265c3a291ca4088361c0acd64310a7c41bf0750b4ac762157c20ceaa5df8bdc0a67374bcad9654bca5c3fc8630ff89c'
+-        '2eeb64caf188d79137686a8c5f0aa9d27860b3a3da8e0d4082f749beaa600928d814fe8cd70a6921358066603ce453d92838c1bce32509574ea333b6ca567fc8')
++        '2eeb64caf188d79137686a8c5f0aa9d27860b3a3da8e0d4082f749beaa600928d814fe8cd70a6921358066603ce453d92838c1bce32509574ea333b6ca567fc8'
++        'b8f4c338bb58a9ce9f4ebf3cfeaa5cbc16ee895b2bc6654fe30b29ac5a2a045b5af898b80fb56c504b16adbf39e93f8508e500999a2705139660e940d3b77325')
+ 
+ prepare() {
+   cd ruby-${pkgver}
+@@ -29,6 +32,8 @@ prepare() {
+   mv ../openssl-$_osslver/lib ext/openssl
+   mv ../openssl-$_osslver/{History.md,openssl.gemspec} ext/openssl
+   mv ../openssl-$_osslver/test/openssl test
++
++  patch -Np2 -i ../ruby-fix-bin-sh.patch
+ }
+ 
+ build() {
+@@ -141,7 +146,7 @@ package_ruby() {
+     rm --force --recursive --verbose \
+       "${pkgdir}"/usr/lib/ruby/${rubyver}/${stdlib_gem} \
+       "${pkgdir}"/usr/lib/ruby/${rubyver}/${stdlib_gem}.rb \
+-      "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/${stdlib_gem}.so \
++      "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/${stdlib_gem}.so \
+       "${pkgdir}"/usr/lib/ruby/gems/${rubyver}/specifications/default/${stdlib_gem}-*.gemspec
+   done
+ 
+@@ -151,14 +156,14 @@ package_ruby() {
+     "${pkgdir}"/usr/lib/ruby/${rubyver}/net/http \
+     "${pkgdir}"/usr/lib/ruby/${rubyver}/net/http.rb \
+     "${pkgdir}"/usr/lib/ruby/${rubyver}/net/https.rb \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/cgi \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/date_core.so \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/digest \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/io/console.so \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/io/nonblock.so \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/io/wait.so \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/json \
+-    "${pkgdir}"/usr/lib/ruby/${rubyver}/x86_64-linux/racc
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/cgi \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/date_core.so \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/digest \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/io/console.so \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/io/nonblock.so \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/io/wait.so \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/json \
++    "${pkgdir}"/usr/lib/ruby/${rubyver}/aarch64-linux/racc
+ }
+ 
+ package_ruby-docs() {

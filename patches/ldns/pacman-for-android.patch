@@ -1,0 +1,30 @@
+diff --git PKGBUILD PKGBUILD
+index eb8faea..851a1e8 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -20,19 +20,19 @@ validpgpkeys=('DC34EE5DB2417BCC151E5100E5F8F8212F77A498') # Willem Toorop
+ build() {
+ 	cd $pkgname-$pkgver
+ 	./configure \
+-		--prefix=/usr \
+-		--sysconfdir=/etc \
+-		--localstatedir=/var \
++		--prefix=/data/usr \
++		--sysconfdir=/data/etc \
++		--localstatedir=/data/var \
+ 		--disable-rpath \
+ 		--with-drill \
+ 		--with-examples \
+-		--with-trust-anchor=/etc/trusted-key.key \
+-
++		--with-trust-anchor=/data/etc/trusted-key.key \
++		--with-ssl=/data/usr
+ 	make
+ }
+ 
+ package() {
+ 	cd $pkgname-$pkgver
+ 	make DESTDIR="${pkgdir}" install
+-	install -D -m644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
++	install -D -m644 LICENSE "${pkgdir}/data/usr/share/licenses/${pkgname}/LICENSE"
+ }

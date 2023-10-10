@@ -8,8 +8,8 @@ PKGBUILD_PATH="$SOURCES_DIR/$1/PKGBUILD"
 
 source "$PKGBUILD_PATH"
 
-if echo "${arch[@]}" | grep aarch64; then
+if echo "${arch[@]}" | grep -q aarch64; then
     exit 0
-elif echo "${arch[@]}" | grep x86_64; then
+elif echo "${arch[@]}" | grep -q x86_64; then
     setconf "$PKGBUILD_PATH" arch '(x86_64 aarch64)'
 fi

@@ -1,0 +1,2 @@
+--enable-overwrite is needed because if the prefix is not /usr,
+the curses overwrite is not enabled by default.

@@ -34,7 +34,7 @@ def init_source(pkg):
 def patch_source(pkg):
     if (patches_dir / pkg).is_dir():
         copytree(patches_dir / pkg, sources_dir / pkg, dirs_exist_ok=True)
-    if pkg in patch_list:
+    if (patches_dir / pkg / "pacman-for-android.patch").is_file():
         print("Patching source for", pkg, "...")
         run(["patch", "-Np0", "-i", str(sources_dir / pkg / "pacman-for-android.patch")],
             cwd=str(sources_dir / pkg), check=True)

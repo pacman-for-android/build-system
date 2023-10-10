@@ -1,0 +1,55 @@
+diff --git PKGBUILD PKGBUILD
+index cb31758..e61a4f0 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,20 +8,25 @@ pkgdesc='Terminal multiplexer'
+ url='https://github.com/tmux/tmux/wiki'
+ arch=('x86_64')
+ license=('BSD')
+-depends=('ncurses' 'libevent' 'libutempter' 'systemd-libs')
+-makedepends=('systemd')
++depends=('ncurses' 'libevent' 'libutempter')
+ source=("https://github.com/tmux/tmux/releases/download/${pkgver/_/}/tmux-${pkgver/_/}.tar.gz"
+         '0001-CVE-2022-47016.patch'
+-        '0002-ncurses.patch')
++        '0002-ncurses.patch'
++		'tmux-fix-pathes.patch'
++		'tmux-fix-config-path.patch')
+ sha256sums=('e4fd347843bd0772c4f48d6dde625b0b109b7a380ff15db21e97c11a4dcdf93f'
+             '58fb690833e086b71b52555aa8eced695ace0a0bc51b8bccfda441e35a47ca93'
+-            '70e8cc2a95dd4a19ff54bcf0abaeff6464ebecbaace5ed0aec06ca93a84d415a')
++            '70e8cc2a95dd4a19ff54bcf0abaeff6464ebecbaace5ed0aec06ca93a84d415a'
++            'c4940bd752ebdca51d5019e31140627aa0f91030c7510b19fe4d8d5c84497dcd'
++            'b6c013077b5f57868fde9c7e7f0bb39602644c3bf8046e3d06f8f53c13325b19')
+ 
+ prepare() {
+ 	cd "$pkgname-${pkgver/_/}"
+ 
+ 	patch -Np1 -i ../0001-CVE-2022-47016.patch
+ 	patch -Np1 -i ../0002-ncurses.patch
++	patch -Np0 -i ../tmux-fix-pathes.patch
++	patch -Np0 -i ../tmux-fix-config-path.patch
+ 
+ 	autoreconf -fi
+ }
+@@ -30,9 +35,10 @@ build() {
+ 	cd "$pkgname-${pkgver/_/}"
+ 
+ 	./configure \
+-		--prefix=/usr \
+-		--enable-utempter \
+-		--enable-systemd
++		--prefix=/data/usr \
++		--sysconfdir=/data/etc \
++		--disable-utempter \
++		--disable-systemd
+ 	make
+ }
+ 
+@@ -40,5 +46,5 @@ package() {
+ 	cd "$pkgname-${pkgver/_/}"
+ 
+ 	make install DESTDIR="$pkgdir"
+-	install -D -m0644 COPYING "$pkgdir/usr/share/licenses/tmux/LICENSE"
++	install -D -m0644 COPYING "$pkgdir/data/usr/share/licenses/tmux/LICENSE"
+ }

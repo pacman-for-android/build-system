@@ -1,0 +1,12 @@
+diff --git PKGBUILD PKGBUILD
+index 5050e31..55614a6 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -46,6 +46,7 @@ build() {
+     --disable-root-environ
+     --disable-setuid-environ
+     --enable-widec
++    --enable-overwrite
+     --enable-pc-files
+     --mandir=/usr/share/man
+     --with-cxx-binding

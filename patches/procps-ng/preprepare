@@ -1,0 +1,1 @@
+sed -i '1s|.*|#!/data/usr/bin/sh|' procps-ng-$pkgver/local/git-version-gen

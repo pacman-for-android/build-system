@@ -1,0 +1,2 @@
+# Not sure why ltmain.sh can't be found
+cp /data/usr/share/libtool/build-aux/ltmain.sh ./$pkgbase-$pkgver/contrib/minizip/

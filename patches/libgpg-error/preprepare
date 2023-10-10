@@ -1,0 +1,2 @@
+sed -i '1s|^#![[:space:]]*/bin/sh|#!/data/usr/bin/sh|' ${pkgname}-${pkgver}/autogen.sh
+sed -i 's|INSTALLSHELLPATH=/bin/sh|INSTALLSHELLPATH=/data/usr/bin/sh|' ${pkgname}-${pkgver}/configure{,.ac}

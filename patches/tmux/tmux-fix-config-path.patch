@@ -1,0 +1,11 @@
+--- tmux.h.orig	2023-08-27 11:46:59.358031252 +0800
++++ tmux.h	2023-08-27 11:47:27.501365843 +0800
+@@ -71,7 +71,7 @@
+ 
+ /* Default configuration files and socket paths. */
+ #ifndef TMUX_CONF
+-#define TMUX_CONF "/etc/tmux.conf:~/.tmux.conf"
++#define TMUX_CONF "/data/etc/tmux.conf:~/.tmux.conf"
+ #endif
+ #ifndef TMUX_SOCK
+ #define TMUX_SOCK "$TMUX_TMPDIR:" _PATH_TMP

@@ -1,0 +1,1 @@
+sed -i 's|MAKE_SHELL=/bin/sh|MAKE_SHELL=/data/usr/bin/sh|' $pkgname-$_basever/configure{,.ac}

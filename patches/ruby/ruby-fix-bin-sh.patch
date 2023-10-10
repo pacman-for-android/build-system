@@ -1,0 +1,192 @@
+diff --git a/ruby-3.0.6.orig/ext/pty/pty.c b/ruby-3.0.6/ext/pty/pty.c
+index e53871e..7356662 100644
+--- a/ruby-3.0.6.orig/ext/pty/pty.c
++++ b/ruby-3.0.6/ext/pty/pty.c
+@@ -176,7 +176,7 @@ establishShell(int argc, VALUE *argv, struct pty_info *info,
+     char		errbuf[32];
+ 
+     if (argc == 0) {
+-	const char *shellname = "/bin/sh";
++	const char *shellname = "/data/usr/bin/sh";
+ 
+ 	if ((p = getenv("SHELL")) != NULL) {
+ 	    shellname = p;
+diff --git a/ruby-3.0.6.orig/lib/mkmf.rb b/ruby-3.0.6/lib/mkmf.rb
+index 66f2960..e9265c5 100644
+--- a/ruby-3.0.6.orig/lib/mkmf.rb
++++ b/ruby-3.0.6/lib/mkmf.rb
+@@ -1927,7 +1927,7 @@ SRC
+     vpath = $VPATH.dup
+     CONFIG["hdrdir"] ||= $hdrdir
+     mk << %{
+-SHELL = /bin/sh
++SHELL = /data/usr/bin/sh
+ 
+ # V=0 quiet, V=1 verbose.  other values don't work.
+ V = 0
+diff --git a/ruby-3.0.6.orig/lib/rubygems/installer.rb b/ruby-3.0.6/lib/rubygems/installer.rb
+index 8e3965e..8c1aacc 100644
+--- a/ruby-3.0.6.orig/lib/rubygems/installer.rb
++++ b/ruby-3.0.6/lib/rubygems/installer.rb
+@@ -617,7 +617,7 @@ class Gem::Installer
+     elsif not ruby_name
+       "#!#{Gem.ruby}#{opts}"
+     elsif opts
+-      "#!/bin/sh\n'exec' #{ruby_name.dump} '-x' \"$0\" \"$@\"\n#{shebang}"
++      "#!/data/usr/bin/sh\n'exec' #{ruby_name.dump} '-x' \"$0\" \"$@\"\n#{shebang}"
+     else
+       # Create a plain shebang line.
+       @env_path ||= ENV_PATHS.find {|env_path| File.executable? env_path }
+diff --git a/ruby-3.0.6.orig/process.c b/ruby-3.0.6/process.c
+index 674f05d..2cd9dcd 100644
+--- a/ruby-3.0.6.orig/process.c
++++ b/ruby-3.0.6/process.c
+@@ -1810,9 +1810,9 @@ exec_with_sh(const char *prog, char **argv, char **envp)
+     *argv = (char *)prog;
+     *--argv = (char *)"sh";
+     if (envp)
+-        execve("/bin/sh", argv, envp); /* async-signal-safe */
++        execve("/data/usr/bin/sh", argv, envp); /* async-signal-safe */
+     else
+-        execv("/bin/sh", argv); /* async-signal-safe (since SUSv4) */
++        execv("/data/usr/bin/sh", argv); /* async-signal-safe (since SUSv4) */
+ }
+ 
+ #else
+@@ -1880,9 +1880,9 @@ proc_exec_sh(const char *str, VALUE envp_str)
+     }
+ #else
+     if (envp_str)
+-        execle("/bin/sh", "sh", "-c", str, (char *)NULL, RB_IMEMO_TMPBUF_PTR(envp_str)); /* async-signal-safe */
++        execle("/data/usr/bin/sh", "sh", "-c", str, (char *)NULL, RB_IMEMO_TMPBUF_PTR(envp_str)); /* async-signal-safe */
+     else
+-        execl("/bin/sh", "sh", "-c", str, (char *)NULL); /* async-signal-safe (since SUSv4) */
++        execl("/data/usr/bin/sh", "sh", "-c", str, (char *)NULL); /* async-signal-safe (since SUSv4) */
+ #endif	/* _WIN32 */
+     return errno;
+ }
+diff --git a/ruby-3.0.6.orig/template/Makefile.in b/ruby-3.0.6/template/Makefile.in
+index f5a3149..374d122 100644
+--- a/ruby-3.0.6.orig/template/Makefile.in
++++ b/ruby-3.0.6/template/Makefile.in
+@@ -1,6 +1,6 @@
+ # -*- mode: makefile-gmake; indent-tabs-mode: t -*-
+ 
+-SHELL = /bin/sh
++SHELL = /data/usr/bin/sh
+ NULLCMD = @NULLCMD@
+ n=$(NULLCMD)
+ ECHO1 = $(V:1=$n)
+diff --git a/ruby-3.0.6.orig/template/ruby-gdb.in b/ruby-3.0.6/template/ruby-gdb.in
+index 7ab4e97..cd66381 100755
+--- a/ruby-3.0.6.orig/template/ruby-gdb.in
++++ b/ruby-3.0.6/template/ruby-gdb.in
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ prefix="/${0%/*}"
+ prefix="${prefix%/*}"
+ ruby="${bindir}/${RUBY_INSTALL_NAME}"
+diff --git a/ruby-3.0.6.orig/template/ruby-lldb.in b/ruby-3.0.6/template/ruby-lldb.in
+index c33603b..6dc9bc0 100755
+--- a/ruby-3.0.6.orig/template/ruby-lldb.in
++++ b/ruby-3.0.6/template/ruby-lldb.in
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ prefix="/${0%/*}"
+ prefix="${prefix%/*}"
+ ruby="${bindir}/${RUBY_INSTALL_NAME}"
+diff --git a/ruby-3.0.6.orig/tool/bisect.sh b/ruby-3.0.6/tool/bisect.sh
+index 3b97707..7bc2b63 100755
+--- a/ruby-3.0.6.orig/tool/bisect.sh
++++ b/ruby-3.0.6/tool/bisect.sh
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ # usage:
+ #   edit $(srcdir)/test.rb
+ #   git bisect start <bad> <good>
+diff --git a/ruby-3.0.6.orig/tool/build-transcode b/ruby-3.0.6/tool/build-transcode
+index fa71155..b9d089a 100755
+--- a/ruby-3.0.6.orig/tool/build-transcode
++++ b/ruby-3.0.6/tool/build-transcode
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ 
+ [ "$1" -a -d "$1" ] && { cd "$1" || exit $?; } && shift
+ [ "$#" = 0 ] && set enc/trans/*.trans
+diff --git a/ruby-3.0.6.orig/tool/config.guess b/ruby-3.0.6/tool/config.guess
+index 1972fda..6d225ea 100755
+--- a/ruby-3.0.6.orig/tool/config.guess
++++ b/ruby-3.0.6/tool/config.guess
+@@ -1,4 +1,4 @@
+-#! /bin/sh
++#! /data/usr/bin/sh
+ # Attempt to guess a canonical system name.
+ #   Copyright 1992-2021 Free Software Foundation, Inc.
+ 
+diff --git a/ruby-3.0.6.orig/tool/config.sub b/ruby-3.0.6/tool/config.sub
+index 38f3d03..e406611 100755
+--- a/ruby-3.0.6.orig/tool/config.sub
++++ b/ruby-3.0.6/tool/config.sub
+@@ -1,4 +1,4 @@
+-#! /bin/sh
++#! /data/usr/bin/sh
+ # Configuration validation subroutine script.
+ #   Copyright 1992-2021 Free Software Foundation, Inc.
+ 
+diff --git a/ruby-3.0.6.orig/tool/git-refresh b/ruby-3.0.6/tool/git-refresh
+index 9ed7d7c..165d001 100755
+--- a/ruby-3.0.6.orig/tool/git-refresh
++++ b/ruby-3.0.6/tool/git-refresh
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ set -e
+ 
+ if (cd -P .) 2>/dev/null; then
+diff --git a/ruby-3.0.6.orig/tool/ifchange b/ruby-3.0.6/tool/ifchange
+index 050c8d8..bd37d20 100755
+--- a/ruby-3.0.6.orig/tool/ifchange
++++ b/ruby-3.0.6/tool/ifchange
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ # usage: ifchange target temporary
+ 
+ # Used in generating revision.h via Makefiles.
+diff --git a/ruby-3.0.6.orig/tool/install-sh b/ruby-3.0.6/tool/install-sh
+index 11e502f..ca2e292 100644
+--- a/ruby-3.0.6.orig/tool/install-sh
++++ b/ruby-3.0.6/tool/install-sh
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ 
+ # Just only for using AC_PROG_INSTALL in configure.ac.
+ # See autoconf.info for more detail.
+diff --git a/ruby-3.0.6.orig/tool/merger.rb b/ruby-3.0.6/tool/merger.rb
+index 2ea5d88..5e07324 100755
+--- a/ruby-3.0.6.orig/tool/merger.rb
++++ b/ruby-3.0.6/tool/merger.rb
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ # -*- ruby -*-
+ exec "${RUBY-ruby}" "-x" "$0" "$@" && [ ] if false
+ #!ruby
+diff --git a/ruby-3.0.6.orig/tool/rbinstall.rb b/ruby-3.0.6/tool/rbinstall.rb
+index 7232865..bd8a19a 100755
+--- a/ruby-3.0.6.orig/tool/rbinstall.rb
++++ b/ruby-3.0.6/tool/rbinstall.rb
+@@ -476,7 +476,7 @@ PROLOG_SCRIPT["cmd"] = <<EOS
+ EOS
+ PROLOG_SCRIPT.default = (load_relative || /\s/ =~ bindir) ?
+                           <<EOS : PROLOG_SCRIPT["exe"]
+-#!/bin/sh
++#!/data/usr/bin/sh
+ # -*- ruby -*-
+ _=_\\
+ =begin

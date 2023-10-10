@@ -1,0 +1,23 @@
+diff --git PKGBUILD PKGBUILD
+index b7c27b7..3fc4af0 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -17,14 +17,14 @@ b2sums=('45a2ceabd38b3ea55f466de68d0806df6ae802b509063ca12d670ba972bac3dc5c7e518
+ 
+ build() {
+   cd ${pkgname}-${pkgver}
+-  make -C src
++  make -C src PREFIX=/data/usr
+ }
+ 
+ package() {
+   cd ${pkgname}-${pkgver}
+-  make -C src DESTDIR="${pkgdir}" LIBSUBDIR=lib install install_headers
+-  install -Dm 644 LICENSE* -t "${pkgdir}/usr/share/licenses/${pkgname}"
+-  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
++  make -C src DESTDIR="${pkgdir}" LIBSUBDIR=lib PREFIX=/data/usr SHELL=/data/usr/bin/sh install install_headers
++  install -Dm 644 LICENSE* -t "${pkgdir}/data/usr/share/licenses/${pkgname}"
++  install -Dm 644 README.md -t "${pkgdir}/data/usr/share/doc/${pkgname}"
+ }
+ 
+ # vim: ts=2 sw=2 et:

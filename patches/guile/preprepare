@@ -1,0 +1,3 @@
+sed -i '1s|^#![[:space:]]*/bin/sh|#!/data/usr/bin/sh|' \
+    ${pkgname}-${pkgver}/libguile/guile-snarf{,-docs}.in \
+    ${pkgname}-${pkgver}/meta/{guile.in,uninstalled-env.in,guile-config.in,guild.in,gdb-uninstalled-guile.in,build-env.in}

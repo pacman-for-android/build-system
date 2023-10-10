@@ -1,3 +1,3 @@
 perl -pi -e 's/(usr(?=\/))|((?<=\/)usr)/data\/usr/g' "$1"
 perl -pi -e 's/(etc(?=\/))|((?<=\/)etc)/data\/etc/g' "$1"
-perl -pi -e 's/(var(?=\/))|((?<=\/)etc)/data\/var/g' "$1"
+perl -pi -e 's/(var(?=\/))|((?<=\/)var)/data\/var/g' "$1"

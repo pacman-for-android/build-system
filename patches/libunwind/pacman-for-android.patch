@@ -1,0 +1,12 @@
+diff --git PKGBUILD PKGBUILD
+index bc47555..e79304f 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -12,7 +12,6 @@ arch=('x86_64')
+ url='https://www.nongnu.org/libunwind/'
+ license=('GPL')
+ depends=('xz' 'zlib')
+-makedepends=('texlive-core')
+ source=("https://download.savannah.gnu.org/releases/$pkgname/$pkgname-$pkgver.tar.gz"{,.sig})
+ sha512sums=('1d17dfb14f99a894a6cda256caf9ec481c14068aaf8f3a85fa3befa7c7cca7fca0f544a91a3a7c2f2fc55bab19b06a67ca79f55ac9081151d94478c7f611f8f7'
+             'SKIP')

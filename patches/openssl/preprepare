@@ -1,0 +1,1 @@
+sed -i '1s|.*|#!/data/usr/bin/perl|' "$pkgname-$pkgver/Configure"

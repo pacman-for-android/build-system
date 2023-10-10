@@ -1,0 +1,4 @@
+sed -i '1s|^#![[:space:]]*/bin/sh|#!/data/usr/bin/sh|' libxml2/autogen.sh
+# Not sure why ltmain.sh can't be found
+echo "Copying ltmain.sh"
+cp /data/usr/share/libtool/build-aux/ltmain.sh libxml2/

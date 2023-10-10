@@ -1,0 +1,3 @@
+# Not sure why ltmain.sh can't be found
+echo "Copying ltmain.sh"
+cp /data/usr/share/libtool/build-aux/ltmain.sh $pkgname-v$pkgver/

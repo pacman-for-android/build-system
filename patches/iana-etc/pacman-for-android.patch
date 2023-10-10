@@ -1,0 +1,54 @@
+diff --git PKGBUILD PKGBUILD
+index 3ccb9f8..86f49ea 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,11 +7,11 @@ pkgver=20230907
+ _ports=service-names-port-numbers-${pkgver}
+ _protocols=protocol-numbers-20230606
+ pkgrel=1
+-pkgdesc='/etc/protocols and /etc/services provided by IANA'
++pkgdesc='/data/etc/protocols and /data/etc/services provided by IANA'
+ url='https://www.iana.org/protocols'
+ arch=('any')
+ license=('custom:none')
+-backup=('etc/'{protocols,services})
++backup=('data/etc/'{protocols,services})
+ source=("https://sources.archlinux.org/other/packages/iana-etc/${_ports}.xml"
+         "https://sources.archlinux.org/other/packages/iana-etc/${_protocols}.xml"
+         'LICENSE')
+@@ -26,27 +26,27 @@ sha256sums=('0575ef913b28f8a9e7f60121038c92678943d4bf7cbdcbfe6d46e1e946577765'
+ package() {
+ 	cd "${srcdir}"
+ 
+-	install -d "${pkgdir}/etc"
+-	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/iana-etc/LICENSE"
+-	install -Dm644 ${_ports}.xml "${pkgdir}/usr/share/iana-etc/port-numbers.iana"
+-	install -Dm644 ${_protocols}.xml "${pkgdir}/usr/share/iana-etc/protocol-numbers.iana"
++	install -d "${pkgdir}/data/etc"
++	install -Dm644 LICENSE "${pkgdir}/data/usr/share/licenses/iana-data/etc/LICENSE"
++	install -Dm644 ${_ports}.xml "${pkgdir}/data/usr/share/iana-data/etc/port-numbers.iana"
++	install -Dm644 ${_protocols}.xml "${pkgdir}/data/usr/share/iana-data/etc/protocol-numbers.iana"
+ 
+ 	gawk -F"[<>]" '
+-BEGIN { print "# Full data: /usr/share/iana-etc/protocol-numbers.iana\n" }
++BEGIN { print "# Full data: /data/usr/share/iana-data/etc/protocol-numbers.iana\n" }
+ (/<record/) { v=n="" }
+ (/<value/) { v=$3 }
+ (/<name/ && $3!~/ /) { n=$3 }
+ (/<\/record/ && n && v!="") { printf "%-12s %3i %s\n", tolower(n),v,n }
+-' ${_protocols}.xml > "${pkgdir}/etc/protocols"
++' ${_protocols}.xml > "${pkgdir}/data/etc/protocols"
+ 
+ 	gawk -F"[<>]" '
+-BEGIN { print "# Full data: /usr/share/iana-etc/port-numbers.iana\n" }
++BEGIN { print "# Full data: /data/usr/share/iana-data/etc/port-numbers.iana\n" }
+ (/<record/) { n=u=p=c="" }
+ (/<name/ && !/\(/) { n=$3 }
+ (/<number/) { u=$3 }
+ (/<protocol/) { p=$3 }
+ (/Unassigned/ || /Reserved/ || /historic/) { c=1 }
+ (/<\/record/ && n && u && p && !c) { printf "%-15s %5i/%s\n", n,u,p }
+-' ${_ports}.xml > "${pkgdir}/etc/services"
++' ${_ports}.xml > "${pkgdir}/data/etc/services"
+ 
+ }

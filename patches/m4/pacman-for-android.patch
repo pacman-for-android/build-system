@@ -1,0 +1,13 @@
+diff --git PKGBUILD PKGBUILD
+index 0e6fa0b..579b076 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -17,7 +17,7 @@ validpgpkeys=('71C2CC22B1C4602927D2F3AAA7A16B4A2527436A')   # Eric Blake
+ 
+ build() {
+ 	cd "$pkgname-$pkgver"
+-	./configure --prefix=/usr
++	./configure --prefix=/usr --with-syscmd-shell=/usr/bin/sh
+ 	make
+ }
+ 

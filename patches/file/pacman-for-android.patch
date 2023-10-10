@@ -1,0 +1,13 @@
+diff --git PKGBUILD PKGBUILD
+index 84ddade..b0792cc 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -40,7 +40,7 @@ build() {
+     --prefix=/usr \
+     --datadir=/usr/share/file \
+     --enable-fsect-man5 \
+-    --enable-libseccomp
++    --disable-libseccomp
+   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+   make
+ }

@@ -2,14 +2,28 @@ if [[ $(type -t prepare) == function ]]; then
     _pfa_prepare=$(declare -f prepare)
     _pfa_prepare=${_pfa_prepare#*\{}
     _pfa_prepare=${_pfa_prepare%\}}
-    eval "prepare () {
+    _pfa_pre="$(cat << _PFA_EOF
+prepare () {
     @@_pfa_preprepare@@
-    $_pfa_prepare
+
+_PFA_EOF
+    )"
+    _pfa_post="$(cat << _PFA_EOF
     @@_pfa_postprepare@@
-    }"
+
+}
+_PFA_EOF
+    )"
+    eval "$_pfa_pre
+        $_pfa_prepare
+        $_pfa_post"
 else
-    eval "prepare () {
-        @@_pfa_preprepare@@
-        @@_pfa_postprepare@@
-    }"
+    eval "$(cat << _PFA_EOF
+prepare () {
+    @@_pfa_preprepare@@
+
+    @@_pfa_postprepare@@
+}
+_PFA_EOF
+    )"
 fi

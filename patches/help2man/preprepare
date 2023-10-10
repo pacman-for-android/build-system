@@ -1,0 +1,3 @@
+(cd ${pkgname}-${pkgver};
+sed -i '1s|.*|#!/data/usr/bin/sh|' build-aux/{lookup-locale,find-vpath}
+sed -i '1s|.*|#!/data/usr/bin/perl|' build-aux/{fixup-texi-trans,fixup-texi-pot})

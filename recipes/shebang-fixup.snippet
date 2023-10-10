@@ -1,0 +1,31 @@
+_pfa_prefix_to_add=$(cat <<'EOF'
+EOF
+)
+_pfa_suffix_to_add=$(cat <<'EOF'
+    cd "$pkgdir"
+    shopt -s nullglob
+    for _pfa_bin in data/usr/bin/*; do
+        if file "$_pfa_bin" | grep -q "POSIX shell script"; then
+            sed -i '1s|^#![[:space:]]*/bin/sh|#!/data/usr/bin/sh|' "$_pfa_bin"
+        elif file "$_pfa_bin" | grep -q "Bourne-Again shell script"; then
+            sed -i '1s|^#![[:space:]]*/bin/bash|#!/data/usr/bin/bash|' "$_pfa_bin"
+        fi
+    done
+EOF
+)
+
+if [[ $(type -t package) == function ]]; then
+    _pfa_package=$(declare -f package)
+    _pfa_package=${_pfa_package#*\{}
+    _pfa_package=${_pfa_package%\}}
+    eval "package () {
+    $_pfa_prefix_to_add
+    $_pfa_package
+    $_pfa_suffix_to_add
+    }"
+else
+    eval "package () {
+        $_pfa_prefix_to_add
+        $_pfa_suffix_to_add
+    }"
+fi

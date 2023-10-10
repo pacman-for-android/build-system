@@ -1,0 +1,4 @@
+(cd $pkgname-$pkgver;
+  sed -i '1s|.*|#!/data/usr/bin/sh|' mkinstalldirs;
+  sed -i '1s|.*|#!/data/usr/bin/perl|' mkutable;
+)

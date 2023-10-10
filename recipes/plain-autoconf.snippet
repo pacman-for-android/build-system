@@ -1,17 +1,25 @@
 _pfa_prefix_to_add=$(cat <<'EOF'
-    shopt -s nullglob
-    for _pfa_cfg in */{,**/}configure; do
-        echo "Changing shebang of $_pfa_cfg"
-        sed -i '1s|.*|#!/data/usr/bin/sh|' "$_pfa_cfg"
-    done
-    for _pfa_cfg in */{,**/}Makefile{,-*,.*}; do
-        echo "Changing SHELL of $_pfa_cfg"
-        sed -i 's|SHELL[[:space:]]*=[[:space:]]*/bin/sh|SHELL = /data/usr/bin/sh|' "$_pfa_cfg"
-    done
+    # Nothing to do
 EOF
 )
 _pfa_suffix_to_add=$(cat <<'EOF'
-    # Nothing to do
+    cd "$srcdir"
+    shopt -s globstar nullglob
+    for _pfa_cfg in */**/configure; do
+        echo "Changing shebang of $_pfa_cfg"
+        sed -i '1s|.*|#!/data/usr/bin/sh|' "$_pfa_cfg"
+    done
+    for _pfa_cfg in */**/Makefile{,-*,.*}; do
+        echo "Changing SHELL of $_pfa_cfg"
+        sed -i 's|SHELL[[:space:]]*=[[:space:]]*/bin/sh|SHELL = /data/usr/bin/sh|' "$_pfa_cfg"
+    done
+    for _pfa_aux in **/build-aux; do
+        echo "Changing shebang of $_pfa_aux"
+        for _pfa_bin in "$_pfa_aux"/{config.{sub,guess},install-sh,missing,depcomp,mkinstalldirs}; do
+            test -f "$_pfa_bin" || continue
+            sed -i '1s|.*|#!/data/usr/bin/sh|' "$_pfa_bin"
+        done
+    done
 EOF
 )
 

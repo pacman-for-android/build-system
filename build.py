@@ -23,7 +23,7 @@ def read_list(list_file):
 plain_change_list = read_list("plain-change.list")
 plain_autoconf_list = read_list("plain-autoconf.list")
 patch_list = read_list("patch.list")
-
+shebang_fixup_list = read_list("shebang-fixup.list")
 
 def init_source(pkg):
     print("Initializing source for", pkg, "...")
@@ -44,6 +44,10 @@ def patch_source(pkg):
 def run_prepare_hook(pkgbuild_path):
     run(["bash", str(recipes_dir / "prepare-hook.bash"), pkgbuild_path], check=True)
 
+def fix_shebang(pkg, pkgbuild_path):
+    if pkg in shebang_fixup_list:
+        run(["bash", str(recipes_dir / "shebang-fixup.bash"), pkgbuild_path], check=True)
+
 
 def build(pkg, repo=None, pkgrel=None, chroot=None):
     print("Building", pkg, "...")
@@ -57,6 +61,7 @@ def build(pkg, repo=None, pkgrel=None, chroot=None):
         run(["bash", str(recipes_dir / "plain-autoconf.bash"),
             pkgbuild_path], cwd=sources_dir, check=True)
     run_prepare_hook(pkgbuild_path)
+    fix_shebang(pkg, pkgbuild_path)
 
     if pkgrel:
         run(["bash", str(recipes_dir / "change-pkgrel.bash"),

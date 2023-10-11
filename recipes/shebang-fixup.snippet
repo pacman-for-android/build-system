@@ -9,6 +9,8 @@ _pfa_suffix_to_add=$(cat <<'EOF'
             sed -i '1s|^#![[:space:]]*/bin/sh|#!/data/usr/bin/sh|' "$_pfa_bin"
         elif file "$_pfa_bin" | grep -q "Bourne-Again shell script"; then
             sed -i '1s|^#![[:space:]]*/bin/bash|#!/data/usr/bin/bash|' "$_pfa_bin"
+        elif file "$_pfa_bin" | grep -q -e "Python script" -e "Perl script"; then
+            sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' "$_pfa_bin"
         fi
     done
 EOF

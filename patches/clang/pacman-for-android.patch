@@ -1,0 +1,105 @@
+diff --git PKGBUILD PKGBUILD
+index f4520d4..58a8f66 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -22,7 +22,8 @@ source=($_source_base/clang-$pkgver.src.tar.xz{,.sig}
+         $_source_base/llvm-$pkgver.src.tar.xz{,.sig}
+         $_source_base/cmake-$pkgver.src.tar.xz{,.sig}
+         $_source_base/third-party-$pkgver.src.tar.xz{,.sig}
+-        enable-fstack-protector-strong-by-default.patch)
++        enable-fstack-protector-strong-by-default.patch
++        clang-loader.patch)
+ sha256sums=('1186b6e6eefeadd09912ed73b3729e85b59f043724bb2818a95a2ec024571840'
+             'SKIP'
+             '174c7844db2590b18b2a59a9ce503f8fe439edc2de2f0f625006501c99736f31'
+@@ -33,7 +34,8 @@ sha256sums=('1186b6e6eefeadd09912ed73b3729e85b59f043724bb2818a95a2ec024571840'
+             'SKIP'
+             '15f5b9aeeba938530af977d5f9205612737a091a7f0f6c8075df8723b7713f70'
+             'SKIP'
+-            '45da5783f4e89e4507a351ed0ffbbe6ec240e21ff7070797a89c5ccf434ac612')
++            '45da5783f4e89e4507a351ed0ffbbe6ec240e21ff7070797a89c5ccf434ac612'
++            'fc94172e7f94ec611b1740387130ffab9b2cfbbe3f9dde201e781e97455a7471')
+ validpgpkeys=('474E22316ABF4785A88C6E8EA2C794A986419D8A'  # Tom Stellard <tstellar@redhat.com>
+               'D574BD5D1D0E98895E3BF90044F2485E45D59042') # Tobias Hieta <tobias@hieta.se>
+ 
+@@ -65,6 +67,7 @@ prepare() {
+   mkdir build
+   mv "$srcdir/clang-tools-extra-$pkgver.src" tools/extra
+   patch -Np2 -i ../enable-fstack-protector-strong-by-default.patch
++  patch -Np2 -i ../clang-loader.patch
+ 
+   # Attempt to convert script to Python 3
+   2to3 -wn --no-diffs \
+@@ -81,17 +84,17 @@ build() {
+   local cmake_args=(
+     -G Ninja
+     -DCMAKE_BUILD_TYPE=Release
+-    -DCMAKE_INSTALL_PREFIX=/usr
++    -DCMAKE_INSTALL_PREFIX=/data/usr
+     -DCMAKE_INSTALL_DOCDIR=share/doc
+     -DCMAKE_SKIP_RPATH=ON
+     -DCLANG_DEFAULT_PIE_ON_LINUX=ON
+     -DCLANG_LINK_CLANG_DYLIB=ON
+     -DENABLE_LINKER_BUILD_ID=ON
+     -DLLVM_BUILD_DOCS=ON
+-    -DLLVM_BUILD_TESTS=ON
++    -DLLVM_BUILD_TESTS=OFF
+     -DLLVM_ENABLE_RTTI=ON
+     -DLLVM_ENABLE_SPHINX=ON
+-    -DLLVM_EXTERNAL_LIT=/usr/bin/lit
++    -DLLVM_EXTERNAL_LIT=/data/usr/bin/lit
+     -DLLVM_INCLUDE_DOCS=ON
+     -DLLVM_LINK_LLVM_DYLIB=ON
+     -DLLVM_MAIN_SRC_DIR="$srcdir/llvm-$pkgver.src"
+@@ -104,7 +107,7 @@ build() {
+   cmake_args+=(-DLLVM_DISTRIBUTION_COMPONENTS="$distribution_components")
+ 
+   cmake .. "${cmake_args[@]}"
+-  ninja
++  ninja -j6
+ }
+ 
+ check() {
+@@ -122,26 +125,34 @@ package() {
+   cd clang-$pkgver.src/build
+ 
+   DESTDIR="$pkgdir" ninja install-distribution
+-  install -Dm644 ../LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644 ../LICENSE.TXT "$pkgdir/data/usr/share/licenses/$pkgname/LICENSE"
+ 
+   # Remove documentation sources
+-  rm -r "$pkgdir"/usr/share/doc/clang{,-tools}/html/{_sources,.buildinfo}
++  rm -r "$pkgdir"/data/usr/share/doc/clang{,-tools}/html/{_sources,.buildinfo}
+ 
+   # Move scanbuild-py into site-packages and install Python bindings
+   local site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
+   install -d "$pkgdir/$site_packages"
+-  mv "$pkgdir"/usr/lib/{libear,libscanbuild} "$pkgdir/$site_packages/"
++  mv "$pkgdir"/data/usr/lib/{libear,libscanbuild} "$pkgdir/$site_packages/"
+   cp -a ../bindings/python/clang "$pkgdir/$site_packages/"
+ 
+-  # Move analyzer scripts out of /usr/libexec
+-  mv "$pkgdir"/usr/libexec/* "$pkgdir/usr/lib/clang/"
+-  rmdir "$pkgdir/usr/libexec"
++  # Move analyzer scripts out of /data/usr/libexec
++  mv "$pkgdir"/data/usr/libexec/* "$pkgdir/data/usr/lib/clang/"
++  rmdir "$pkgdir/data/usr/libexec"
+   sed -i 's|libexec|lib/clang|' \
+-    "$pkgdir/usr/bin/scan-build" \
++    "$pkgdir/data/usr/bin/scan-build" \
+     "$pkgdir/$site_packages/libscanbuild/analyze.py"
+ 
+   # Compile Python scripts
+-  _python_optimize "$pkgdir/usr/share" "$pkgdir/$site_packages"
++  _python_optimize "$pkgdir/data/usr/share" "$pkgdir/$site_packages"
++
++  cd "$pkgdir"
++  shopt -s nullglob
++  for _pfa_bin in data/usr/lib/clang/*; do
++    if file "$_pfa_bin" | grep -q -e "Python script" -e "Perl script"; then
++      sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' "$_pfa_bin"
++    fi
++  done    
+ }
+ 
+ # vim:set ts=2 sw=2 et:

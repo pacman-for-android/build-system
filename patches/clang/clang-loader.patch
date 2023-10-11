@@ -1,0 +1,54 @@
+diff --git a/clang-16.0.6.src.orig/lib/Driver/ToolChains/Linux.cpp b/clang-16.0.6.src/lib/Driver/ToolChains/Linux.cpp
+index c6fb290..cf480f0 100644
+--- a/clang-16.0.6.src.orig/lib/Driver/ToolChains/Linux.cpp
++++ b/clang-16.0.6.src/lib/Driver/ToolChains/Linux.cpp
+@@ -437,7 +437,7 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
+         Triple.getSubArch() == llvm::Triple::PPCSubArch_spe)
+       ArchName = "powerpc-sf";
+ 
+-    return "/lib/ld-musl-" + ArchName + ".so.1";
++    return "/data/usr/lib/ld-musl-" + ArchName + ".so.1";
+   }
+ 
+   std::string LibDir;
+@@ -573,7 +573,7 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
+       (Triple.getVendor() == llvm::Triple::UnknownVendor ||
+        Triple.getVendor() == llvm::Triple::PC))
+     return "/usr/" + Triple.str() + "/lib/" + Loader;
+-  return "/" + LibDir + "/" + Loader;
++  return "/data/usr/" + LibDir + "/" + Loader;
+ }
+ 
+ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+@@ -598,7 +598,7 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+     return;
+ 
+   // LOCAL_INCLUDE_DIR
+-  addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/local/include"));
++  addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/data/usr/local/include"));
+   // TOOL_INCLUDE_DIR
+   AddMultilibIncludeArgs(DriverArgs, CC1Args);
+ 
+@@ -619,10 +619,10 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+   // /usr/include.
+   std::string MultiarchIncludeDir = getMultiarchTriple(D, getTriple(), SysRoot);
+   if (!MultiarchIncludeDir.empty() &&
+-      D.getVFS().exists(concat(SysRoot, "/usr/include", MultiarchIncludeDir)))
++      D.getVFS().exists(concat(SysRoot, "/data/usr/include", MultiarchIncludeDir)))
+     addExternCSystemInclude(
+         DriverArgs, CC1Args,
+-        concat(SysRoot, "/usr/include", MultiarchIncludeDir));
++        concat(SysRoot, "/data/usr/include", MultiarchIncludeDir));
+ 
+   if (getTriple().getOS() == llvm::Triple::RTEMS)
+     return;
+@@ -632,7 +632,7 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+   // add even when Clang is acting as-if it were a system compiler.
+   addExternCSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/include"));
+ 
+-  addExternCSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/include"));
++  addExternCSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/data/usr/include"));
+ 
+   if (!DriverArgs.hasArg(options::OPT_nobuiltininc) && getTriple().isMusl())
+     addSystemInclude(DriverArgs, CC1Args, ResourceDirInclude);
+

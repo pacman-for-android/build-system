@@ -1,0 +1,40 @@
+diff --git PKGBUILD PKGBUILD
+index 7ad30c6..47b7ae4 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -42,14 +42,15 @@ build() {
+   local cmake_args=(
+     -G Ninja
+     -DCMAKE_BUILD_TYPE=Release
+-    -DCMAKE_INSTALL_PREFIX=/usr
++    -DCMAKE_INSTALL_PREFIX=/data/usr
++    -DCMAKE_INSTALL_LIBDIR=/data/usr/lib
+     -DCMAKE_INSTALL_DOCDIR=share/doc
+     -DCMAKE_SKIP_RPATH=ON
+     -DBUILD_SHARED_LIBS=ON
+     -DLLVM_BUILD_DOCS=ON
+     -DLLVM_ENABLE_SPHINX=ON
+-    -DLLVM_EXTERNAL_LIT=/usr/bin/lit
+-    -DLLVM_INCLUDE_TESTS=ON
++    -DLLVM_EXTERNAL_LIT=/data/usr/bin/lit
++    -DLLVM_INCLUDE_TESTS=OFF
+     -DLLVM_LINK_LLVM_DYLIB=ON
+     -DLLVM_MAIN_SRC_DIR="$srcdir/llvm-$pkgver.src"
+     -DSPHINX_WARNINGS_AS_ERRORS=OFF
+@@ -67,13 +68,13 @@ package() {
+   cd lld-$pkgver.src/build
+ 
+   DESTDIR="$pkgdir" ninja install
+-  install -Dm644 ../LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644 ../LICENSE.TXT "$pkgdir/data/usr/share/licenses/$pkgname/LICENSE"
+ 
+   # https://bugs.llvm.org/show_bug.cgi?id=42455
+-  install -Dm644 -t "$pkgdir/usr/share/man/man1" ../docs/ld.lld.1
++  install -Dm644 -t "$pkgdir/data/usr/share/man/man1" ../docs/ld.lld.1
+ 
+   # Remove documentation sources
+-  rm -r "$pkgdir"/usr/share/doc/lld/html/{_sources,.buildinfo}
++  rm -r "$pkgdir"/data/usr/share/doc/lld/html/{_sources,.buildinfo}
+ }
+ 
+ # vim:set ts=2 sw=2 et:

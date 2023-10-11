@@ -67,3 +67,6 @@ popt
 tar
 xmlto
 lz4
+ragel
+unix-tree
+pam

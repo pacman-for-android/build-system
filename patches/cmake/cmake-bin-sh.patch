@@ -1,0 +1,120 @@
+diff --git cmake-3.27.4.orig/Modules/Internal/CPack/CPack.STGZ_Header.sh.in cmake-3.27.4/Modules/Internal/CPack/CPack.STGZ_Header.sh.in
+index a857aa5..5237f98 100755
+--- cmake-3.27.4.orig/Modules/Internal/CPack/CPack.STGZ_Header.sh.in
++++ cmake-3.27.4/Modules/Internal/CPack/CPack.STGZ_Header.sh.in
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ 
+ # Display usage
+ cpack_usage()
+diff --git cmake-3.27.4.orig/Source/CPack/cmCPackDebGenerator.cxx cmake-3.27.4/Source/CPack/cmCPackDebGenerator.cxx
+index 34c56c9..1c8c859 100644
+--- cmake-3.27.4.orig/Source/CPack/cmCPackDebGenerator.cxx
++++ cmake-3.27.4/Source/CPack/cmCPackDebGenerator.cxx
+@@ -804,7 +804,7 @@ bool cmCPackDebGenerator::createDeb()
+   if (this->IsOn("GEN_CPACK_DEBIAN_GENERATE_POSTINST")) {
+     cmGeneratedFileStream out;
+     out.Open(postinst, false, true);
+-    out << "#!/bin/sh\n\n"
++    out << "#!/data/usr/bin/sh\n\n"
+            "set -e\n\n"
+            "if [ \"$1\" = \"configure\" ]; then\n"
+            "\tldconfig\n"
+@@ -813,7 +813,7 @@ bool cmCPackDebGenerator::createDeb()
+   if (this->IsOn("GEN_CPACK_DEBIAN_GENERATE_POSTRM")) {
+     cmGeneratedFileStream out;
+     out.Open(postrm, false, true);
+-    out << "#!/bin/sh\n\n"
++    out << "#!/data/usr/bin/sh\n\n"
+            "set -e\n\n"
+            "if [ \"$1\" = \"remove\" ]; then\n"
+            "\tldconfig\n"
+diff --git cmake-3.27.4.orig/Source/cmExecProgramCommand.cxx cmake-3.27.4/Source/cmExecProgramCommand.cxx
+index e069b77..3315182 100644
+--- cmake-3.27.4.orig/Source/cmExecProgramCommand.cxx
++++ cmake-3.27.4/Source/cmExecProgramCommand.cxx
+@@ -208,7 +208,7 @@ bool RunCommand(std::string command, std::string& output, int& retVal,
+   }
+   fflush(stdout);
+   fflush(stderr);
+-  const char* cmd[] = { "/bin/sh", "-c", command.c_str(), nullptr };
++  const char* cmd[] = { "/data/usr/bin/sh", "-c", command.c_str(), nullptr };
+   cmsysProcess_SetCommand(cp, cmd);
+ #endif
+ 
+diff --git cmake-3.27.4.orig/Source/cmGhsMultiTargetGenerator.cxx cmake-3.27.4/Source/cmGhsMultiTargetGenerator.cxx
+index 2d35b8f..a70ff84 100644
+--- cmake-3.27.4.orig/Source/cmGhsMultiTargetGenerator.cxx
++++ cmake-3.27.4/Source/cmGhsMultiTargetGenerator.cxx
+@@ -365,7 +365,7 @@ void cmGhsMultiTargetGenerator::WriteBuildEventsHelper(
+   std::string shell;
+ #else
+   std::string fext = ".sh";
+-  std::string shell = "/bin/sh ";
++  std::string shell = "/data/usr/bin/sh ";
+ #endif
+ 
+   for (cmCustomCommand const& cc : ccv) {
+diff --git cmake-3.27.4.orig/Source/cmGlobalGhsMultiGenerator.cxx cmake-3.27.4/Source/cmGlobalGhsMultiGenerator.cxx
+index 2453bfc..1b47eb2 100644
+--- cmake-3.27.4.orig/Source/cmGlobalGhsMultiGenerator.cxx
++++ cmake-3.27.4/Source/cmGlobalGhsMultiGenerator.cxx
+@@ -237,7 +237,7 @@ void cmGlobalGhsMultiGenerator::WriteCustomRuleBOD(std::ostream& fout)
+ #ifdef _WIN32
+           "cmd.exe"
+ #else
+-          "/bin/sh"
++          "/data/usr/bin/sh"
+ #endif
+           "\"\n"
+           "    options = {\"SpecialOptions\"}\n"
+diff --git cmake-3.27.4.orig/Source/cmLocalNinjaGenerator.cxx cmake-3.27.4/Source/cmLocalNinjaGenerator.cxx
+index 4b0604c..148305f 100644
+--- cmake-3.27.4.orig/Source/cmLocalNinjaGenerator.cxx
++++ cmake-3.27.4/Source/cmLocalNinjaGenerator.cxx
+@@ -518,7 +518,7 @@ std::string cmLocalNinjaGenerator::BuildCommandLine(
+         cmdLines, outputConfig, commandConfig, customStep, target);
+       std::string cmd
+ #ifndef _WIN32
+-        = "/bin/sh "
++        = "/data/usr/bin/sh "
+ #endif
+         ;
+       cmd += this->ConvertToOutputFormat(
+diff --git cmake-3.27.4.orig/Source/cmLocalUnixMakefileGenerator3.cxx cmake-3.27.4/Source/cmLocalUnixMakefileGenerator3.cxx
+index 3c6b303..21a16e5 100644
+--- cmake-3.27.4.orig/Source/cmLocalUnixMakefileGenerator3.cxx
++++ cmake-3.27.4/Source/cmLocalUnixMakefileGenerator3.cxx
+@@ -655,7 +655,7 @@ void cmLocalUnixMakefileGenerator3::WriteMakeVariables(
+     /* clang-format off */
+       makefileStream
+         << "# The shell in which to execute make rules.\n"
+-        << "SHELL = /bin/sh\n"
++        << "SHELL = /data/usr/bin/sh\n"
+         << "\n";
+ /* clang-format on */
+ #endif
+diff --git cmake-3.27.4.orig/Utilities/cmlibarchive/libarchive/archive_write_set_format_shar.c cmake-3.27.4/Utilities/cmlibarchive/libarchive/archive_write_set_format_shar.c
+index 9e4931c..a176c58 100644
+--- cmake-3.27.4.orig/Utilities/cmlibarchive/libarchive/archive_write_set_format_shar.c
++++ cmake-3.27.4/Utilities/cmlibarchive/libarchive/archive_write_set_format_shar.c
+@@ -164,7 +164,7 @@ archive_write_shar_header(struct archive_write *a, struct archive_entry *entry)
+ 
+ 	shar = (struct shar *)a->format_data;
+ 	if (!shar->wrote_header) {
+-		archive_strcat(&shar->work, "#!/bin/sh\n");
++		archive_strcat(&shar->work, "#!/data/usr/bin/sh\n");
+ 		archive_strcat(&shar->work, "# This is a shell archive\n");
+ 		shar->wrote_header = 1;
+ 	}
+diff --git cmake-3.27.4.orig/bootstrap cmake-3.27.4/bootstrap
+index cc60425..61f933d 100755
+--- cmake-3.27.4.orig/bootstrap
++++ cmake-3.27.4/bootstrap
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+ # file Copyright.txt or https://cmake.org/licensing for details.
+ 

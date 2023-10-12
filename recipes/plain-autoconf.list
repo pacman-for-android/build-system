@@ -70,3 +70,5 @@ lz4
 ragel
 unix-tree
 pam
+coreutils
+chrpath

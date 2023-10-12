@@ -230,3 +230,10 @@ python-sphinx_rtd_theme
 python-sphinxcontrib-jquery
 compiler-rt
 wasi-libc
+coreutils
+cppdap
+chrpath
+nlohmann-json
+zstd
+gtest
+re2c

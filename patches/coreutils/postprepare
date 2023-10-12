@@ -1,0 +1,2 @@
+cd "\$srcdir/$pkgname-$pkgver"
+sed -i 's|/tmp|/data/local/tmp|g' lib/tmpdir.c src/mktemp.c

@@ -1,0 +1,60 @@
+# Maintainer: Nicolas Iooss (nicolas <dot> iooss <at> m4x <dot> org)
+# Contributor: Timothée Ravier <tim@siosm.fr>
+# Contributor: Nicky726 (Nicky726 <at> gmail <dot> com)
+# Contributor: Sergej Pupykin (pupykin <dot> s+arch <at> gmail <dot> com)
+# Contributor: Zezadas
+#
+# This PKGBUILD is maintained on https://github.com/archlinuxhardened/selinux.
+# If you want to help keep it up to date, please open a Pull Request there.
+
+pkgname=libselinux
+pkgver=3.5
+pkgrel=2
+pkgdesc="SELinux library and simple utilities"
+arch=('i686' 'x86_64' 'armv6h' 'aarch64')
+url='https://github.com/SELinuxProject/selinux'
+license=('custom')
+groups=('selinux')
+makedepends=('pkgconf' 'python' 'python-pip' 'python-setuptools' 'ruby' 'xz' 'swig')
+depends=('libsepol>=3.5' 'pcre')
+optdepends=('python: python bindings'
+            'ruby: ruby bindings')
+conflicts=("selinux-usr-${pkgname}")
+provides=("selinux-usr-${pkgname}=${pkgver}-${pkgrel}")
+validpgpkeys=(
+  '63191CE94183098689CAB8DB7EF137EC935B0EAF'  # Jason Zaman <perfinion@gentoo.org>
+  'E853C1848B0185CF42864DF363A8AD4B982C4373'  # Petr Lautrbach <plautrba@redhat.com>
+)
+source=("https://github.com/SELinuxProject/selinux/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz"{,.asc}
+        "libselinux.tmpfiles.d")
+sha256sums=('9a3a3705ac13a2ccca2de6d652b6356fead10f36fb33115c185c5ccdf29eec19'
+            'SKIP'
+            '22aa33c62956210ecac27fb39d40e9c2c3559f6f3461dc26d5da36be8e48eff3')
+
+build() {
+  cd "${pkgname}-${pkgver}"
+
+  # Do not build deprecated rpm_execcon() interface. It is useless on Arch Linux anyway.
+  export DISABLE_RPM=y
+
+  export CFLAGS="${CFLAGS} -fno-semantic-interposition"
+  make swigify
+  make all
+  make PYTHON=/data/usr/bin/python3 pywrap
+  make RUBY=/data/usr/bin/ruby rubywrap
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+
+  export DISABLE_RPM=y
+
+  make PREFIX=/data/usr SHELL=/data/usr/bin/sh DESTDIR="${pkgdir}" SBINDIR=/data/usr/bin SHLIBDIR=/data/usr/lib install
+  make PREFIX=/data/usr SHELL=/data/usr/bin/sh DESTDIR="${pkgdir}" PYTHON=/data/usr/bin/python3 SBINDIR=/data/usr/bin SHLIBDIR=/data/usr/lib install-pywrap
+  make PREFIX=/data/usr SHELL=/data/usr/bin/sh DESTDIR="${pkgdir}" RUBY=/data/usr/bin/ruby SBINDIR=/data/usr/bin SHLIBDIR=/data/usr/lib install-rubywrap
+  /data/usr/bin/python3 -m compileall "${pkgdir}/$(/data/usr/bin/python3 -c 'from distutils.sysconfig import *; print(get_python_lib(plat_specific=1))')"
+
+  install -Dm 0644 "${srcdir}"/libselinux.tmpfiles.d "${pkgdir}"/data/usr/lib/tmpfiles.d/libselinux.conf
+
+  install -Dm 0644 LICENSE "${pkgdir}/data/usr/share/licenses/${pkgname}/LICENSE"
+}

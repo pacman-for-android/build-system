@@ -1,0 +1,59 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Pierre Schmitz <pierre@archlinux.de>
+
+pkgname=devtools
+epoch=1
+pkgver=1.0.3
+pkgrel=2.5
+pkgdesc='Tools for PFA package maintainers'
+arch=('any')
+license=('GPL')
+url='https://github.com/pacman-for-android/devtools-fork'
+depends=(
+  install-scripts
+  awk
+  bash
+  binutils
+  coreutils
+  diffutils
+  fakeroot
+  findutils
+  grep
+  jq
+  openssh
+  parallel
+  rsync
+  sed
+  util-linux
+  git
+)
+makedepends=(
+  asciidoc
+  # shellcheck
+)
+optdepends=('btrfs-progs: btrfs support')
+replaces=(devtools-git-poc)
+source=(devtools::git+https://github.com/pacman-for-android/devtools-fork#commit=595ed41c93b3bf9b2c43307dca0d729a09bfa408)
+validpgpkeys=(
+  '4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC' # Pierre Schmitz <pierre@archlinux.org>
+  '86CFFCA918CF3AF47147588051E8B148A9999C34' # Evangelos Foutras <foutrelis@archlinux.org>
+  '8FC15A064950A99DD1BD14DD39E4B877E62EB915' # Sven-Hendrik Haase <svenstaro@archlinux.org>
+  'A2FF3A36AAA56654109064AB19802F8B0D70FC30' # Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+  'B81B051F2D7FC867AAFF35A58DBD63B82072D77A' # Sébastien Luttringer <seblu@archlinux.org>
+  '6645B0A8C7005E78DB1D7864F99FFE0FEAE999BD' # Allan McRae (Developer) <allan@archlinux.org>
+  'E240B57E2C4630BA768E2F26FC1B547C8D8172C8' # Levente Polyak <anthraxx@archlinux.org>
+)
+sha256sums=('SKIP')
+b2sums=('SKIP')
+
+build() {
+  cd ${pkgname}
+  make BUILDTOOLVER="${epoch}:${pkgver}-${pkgrel}-${arch}" PREFIX=/data/usr
+}
+
+package() {
+  cd ${pkgname}
+  make PREFIX=/data/usr DESTDIR="${pkgdir}" install
+}
+
+# vim: ts=2 sw=2 et:

@@ -143,8 +143,7 @@ python-six
 python-snowballstemmer
 python-sphinx
 python-sphinx-alabaster-theme
-# python-sphinx-furo
-# python-sphinx-argparse-cli
+python-sphinx-argparse-cli
 python-sphinx-issues
 python-sphinx-autodoc-typehints
 python-sphinxcontrib-applehelp
@@ -237,3 +236,22 @@ nlohmann-json
 zstd
 gtest
 re2c
+python-networkx
+python-numpy
+python-scipy
+python-matplotlib
+python-dateutil
+python-pandas
+lapack
+make
+meson-python
+python-pyproject-metadata
+python
+python-pythran
+python-pytest-runner
+python-pytest
+python-iniconfig
+python-beniget
+catch2
+python-gast
+xsimd

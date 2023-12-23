@@ -1,0 +1,22 @@
+--- libbacktrace//elf.c.orig	2023-10-15 09:57:31.717857454 +0000
++++ libbacktrace//elf.c	2023-10-15 09:59:12.153857415 +0000
+@@ -856,7 +856,7 @@
+     }
+ }
+ 
+-#define SYSTEM_BUILD_ID_DIR "/usr/lib/debug/.build-id/"
++#define SYSTEM_BUILD_ID_DIR "/data/usr/lib/debug/.build-id/"
+ 
+ /* Open a separate debug info file, using the build ID to find it.
+    Returns an open file descriptor, or -1.
+@@ -1053,8 +1053,8 @@
+ 
+   /* Look for DEBUGLINK_NAME in /usr/lib/debug.  */
+ 
+-  ddescriptor = elf_try_debugfile (state, "/usr/lib/debug/",
+-				   strlen ("/usr/lib/debug/"), prefix,
++  ddescriptor = elf_try_debugfile (state, "/data/usr/lib/debug/",
++				   strlen ("/data/usr/lib/debug/"), prefix,
+ 				   prefix_len, debuglink_name,
+ 				   error_callback, data);
+   if (ddescriptor >= 0)

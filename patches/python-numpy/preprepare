@@ -1,0 +1,1 @@
+sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' numpy-$pkgver/numpy/_build_utils/{tempita.py,process_src_template.py,gitversion.py}

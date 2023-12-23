@@ -1,0 +1,495 @@
+diff --git PKGBUILD PKGBUILD
+index f716aff..d29439e 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,7 +7,7 @@
+ # toolchain build order: linux-api-headers->glibc->binutils->gcc->glibc->binutils->gcc
+ # NOTE: libtool requires rebuilt with each new gcc version
+ 
+-pkgname=(gcc gcc-libs lib32-gcc-libs gcc-ada gcc-d gcc-fortran gcc-go gcc-objc lto-dump libgccjit)
++pkgname=(gcc gcc-libs gcc-fortran gcc-go gcc-objc lto-dump libgccjit)
+ pkgver=13.2.1
+ _majorver=${pkgver%%.*}
+ _commit=860b0f0ef787f756c0e293671b4c4622dff63a79
+@@ -19,11 +19,7 @@ url='https://gcc.gnu.org'
+ makedepends=(
+   binutils
+   doxygen
+-  gcc-ada
+-  gcc-d
+   git
+-  lib32-glibc
+-  lib32-gcc-libs
+   libisl
+   libmpc
+   python
+@@ -37,19 +33,33 @@ checkdepends=(
+   tcl
+ )
+ options=(!emptydirs !lto)
+-_libdir=usr/lib/gcc/$CHOST/${pkgver%%+*}
++_libdir=data/usr/lib/gcc/$CHOST/${pkgver%%+*}
+ source=(git+https://sourceware.org/git/gcc.git#commit=${_commit}
+         c89 c99
+         gcc-ada-repro.patch
++        unfilter-default-library-path.patch
++        libgo-change-pathes.patch
++        lib-instead-of-lib64.patch
++        change-default-interpreter-path.patch
++        gcc-fix-static-compile.patch
++        fix-build-id-dir.patch
++        fix-startfile-prefix.patch
+ )
+ validpgpkeys=(F3691687D867B81B51CE07D9BBE43771487328A9  # bpiotrowski@archlinux.org
+               86CFFCA918CF3AF47147588051E8B148A9999C34  # evangelos@foutrelis.com
+               13975A70E63C361C73AE69EF6EEB81F8981C74C7  # richard.guenther@gmail.com
+               D3A93CAD751C2AF4F8C7AD516C35B99309B5FA62) # Jakub Jelinek <jakub@redhat.com>
+ sha256sums=('SKIP'
+-            'de48736f6e4153f03d0a5d38ceb6c6fdb7f054e8f47ddd6af0a3dbf14f27b931'
+-            '2513c6d9984dd0a2058557bf00f06d8d5181734e41dcfe07be7ed86f2959622a'
+-            '1773f5137f08ac1f48f0f7297e324d5d868d55201c03068670ee4602babdef2f')
++            'df4dae4f07e5435ee05f61f3e2be2596c7f46c56fb3918b7f7e767d8d84fd764'
++            'b3ad990267914a3876c90d10f69034ac19d9360d4c562e9314f2ae7a2b09fbe1'
++            '1773f5137f08ac1f48f0f7297e324d5d868d55201c03068670ee4602babdef2f'
++            '7183fdeea8fd148cf9dd03b0932f9d439b818a5ab3bc9a5e20d8e0b41c9e0efd'
++            'e14918230b5d5927f3a40cb21aa8fd2d41c9ccc79ead181adf72ee010431fb1a'
++            'afa940c342add10c423e0f577174a94e2ab3ca0f14dd75a2f22dfa44e0efe85e'
++            '46fe6409f1b930ff225290d38ebf756707747b8d35b3ea1749187fc5d24d1a1b'
++            '9b6ec477df3352f168b61c2d39dcba8521ef37d1ec9fc84440111eb5a3b3d575'
++            '35071cb449519612d12cd23b627755c66f36439d441178a16ec0f9e2ce246bc6'
++            'ff4e64c46296f16e3a8802b3a4b47bc9f063f06eea4c9547336349e8ec9435c2')
+ 
+ prepare() {
+   [[ ! -d gcc ]] && ln -s gcc-${pkgver/+/-} gcc
+@@ -64,18 +74,31 @@ prepare() {
+   # Reproducible gcc-ada
+   patch -Np0 < "$srcdir/gcc-ada-repro.patch"
+ 
++  # Remove codes filtering default library paths to make mold work correctly
++  patch -Np1 < ../unfilter-default-library-path.patch
++  # pacman for android
++  patch -Np0 < ../change-default-interpreter-path.patch
++  patch -Np1 < ../gcc-fix-static-compile.patch
++  patch -Np1 < ../libgo-change-pathes.patch
++  patch -Np0 < ../lib-instead-of-lib64.patch
++  patch -Np0 < ../fix-build-id-dir.patch
++  patch -Np0 < ../fix-startfile-prefix.patch
++
++  sed -i '1s|.*|#!/data/usr/bin/sh|' move-if-change symlink-tree ylwrap mkdep libtool-ldflags compile ar-lib \
++    libgcc/*.sh gcc/{*.sh,genmultilib,exec-tool.in} libgfortran/*.sh libgo/*.sh \
++
+   mkdir -p "$srcdir/gcc-build"
+   mkdir -p "$srcdir/libgccjit-build"
+ }
+ 
+ build() {
+   local _confflags=(
+-      --prefix=/usr
+-      --libdir=/usr/lib
+-      --libexecdir=/usr/lib
+-      --mandir=/usr/share/man
+-      --infodir=/usr/share/info
+-      --with-bugurl=https://bugs.archlinux.org/
++      --prefix=/data/usr
++      --libdir=/data/usr/lib
++      --libexecdir=/data/usr/lib
++      --mandir=/data/usr/share/man
++      --infodir=/data/usr/share/info
++      --with-native-system-header-dir=/data/usr/include
+       --with-build-config=bootstrap-lto
+       --with-linker-hash-style=gnu
+       --with-system-zlib
+@@ -91,7 +114,7 @@ build() {
+       --enable-link-serialization=1
+       --enable-linker-build-id
+       --enable-lto
+-      --enable-multilib
++      --disable-multilib
+       --enable-plugin
+       --enable-shared
+       --enable-threads=posix
+@@ -109,7 +132,7 @@ build() {
+   CXXFLAGS=${CXXFLAGS/-Werror=format-security/}
+ 
+   "$srcdir/gcc/configure" \
+-    --enable-languages=ada,c,c++,d,fortran,go,lto,objc,obj-c++ \
++    --enable-languages=c,c++,fortran,go,lto,objc,obj-c++ \
+     --enable-bootstrap \
+     "${_confflags[@]:?_confflags unset}"
+ 
+@@ -157,9 +180,9 @@ check() {
+ package_gcc-libs() {
+   pkgdesc='Runtime libraries shipped by GCC'
+   depends=('glibc>=2.27')
+-  options=(!emptydirs !strip)
++  options=(!emptydirs !strip staticlibs)
+   provides=($pkgname-multilib libgo.so libgfortran.so libgphobos.so
+-            libubsan.so libasan.so libtsan.so liblsan.so)
++            libubsan.so libasan.so liblsan.so)
+   replaces=($pkgname-multilib libgphobos)
+ 
+   cd gcc-build
+@@ -172,9 +195,8 @@ package_gcc-libs() {
+              libgomp \
+              libitm \
+              libquadmath \
+-             libsanitizer/{a,l,ub,t}san \
+-             libstdc++-v3/src \
+-             libvtv; do
++             libsanitizer/{a,l,ub}san \
++             libstdc++-v3/src; do
+     make -C $CHOST/$lib DESTDIR="$pkgdir" install-toolexeclibLTLIBRARIES
+   done
+ 
+@@ -183,7 +205,7 @@ package_gcc-libs() {
+ 
+   make -C $CHOST/libphobos DESTDIR="$pkgdir" install
+   rm -rf "$pkgdir"/$_libdir/include/d/
+-  rm -f "$pkgdir"/usr/lib/libgphobos.spec
++  rm -f "$pkgdir"/data/usr/lib/libgphobos.spec
+ 
+   for lib in libgomp \
+              libitm \
+@@ -191,18 +213,17 @@ package_gcc-libs() {
+     make -C $CHOST/$lib DESTDIR="$pkgdir" install-info
+   done
+ 
+-  # remove files provided by lib32-gcc-libs
+-  rm -rf "$pkgdir"/usr/lib32/
+-
+   # Install Runtime Library Exception
+   install -Dm644 "$srcdir/gcc/COPYING.RUNTIME" \
+-    "$pkgdir/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION"
++    "$pkgdir/data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION"
++
++  # Remove static library (.a) files except libatomic.a
++  find "$pkgdir" -name '*.a' ! -name libatomic.a -delete
+ }
+ 
+ package_gcc() {
+   pkgdesc="The GNU Compiler Collection - C and C++ frontends"
+   depends=("gcc-libs=$pkgver-$pkgrel" 'binutils>=2.28' libmpc zstd libisl.so)
+-  optdepends=('lib32-gcc-libs: for generating code for 32-bit ABI')
+   provides=($pkgname-multilib)
+   replaces=($pkgname-multilib)
+   options=(!emptydirs staticlibs)
+@@ -212,81 +233,69 @@ package_gcc() {
+   make -C gcc DESTDIR="$pkgdir" install-driver install-cpp install-gcc-ar \
+     c++.install-common install-headers install-plugin install-lto-wrapper
+ 
+-  install -m755 -t "$pkgdir/usr/bin/" gcc/gcov{,-tool}
++  install -m755 -t "$pkgdir/data/usr/bin/" gcc/gcov{,-tool}
+   install -m755 -t "$pkgdir/${_libdir}/" gcc/{cc1,cc1plus,collect2,lto1}
+ 
+   make -C $CHOST/libgcc DESTDIR="$pkgdir" install
+-  make -C $CHOST/32/libgcc DESTDIR="$pkgdir" install
+-  rm -f "$pkgdir"/usr/lib{,32}/libgcc_s.so*
++  rm -f "$pkgdir"/data/usr/lib/libgcc_s.so*
+ 
+   make -C $CHOST/libstdc++-v3/src DESTDIR="$pkgdir" install
+   make -C $CHOST/libstdc++-v3/include DESTDIR="$pkgdir" install
+   make -C $CHOST/libstdc++-v3/libsupc++ DESTDIR="$pkgdir" install
+   make -C $CHOST/libstdc++-v3/python DESTDIR="$pkgdir" install
+-  make -C $CHOST/32/libstdc++-v3/src DESTDIR="$pkgdir" install
+-  make -C $CHOST/32/libstdc++-v3/include DESTDIR="$pkgdir" install
+-  make -C $CHOST/32/libstdc++-v3/libsupc++ DESTDIR="$pkgdir" install
+ 
+   make DESTDIR="$pkgdir" install-libcc1
+-  install -d "$pkgdir/usr/share/gdb/auto-load/usr/lib"
+-  mv "$pkgdir"/usr/lib/libstdc++.so.6.*-gdb.py \
+-    "$pkgdir/usr/share/gdb/auto-load/usr/lib/"
+-  rm "$pkgdir"/usr/lib{,32}/libstdc++.so*
++  install -d "$pkgdir/data/usr/share/gdb/auto-load/data/usr/lib"
++  mv "$pkgdir"/data/usr/lib/libstdc++.so.6.*-gdb.py \
++    "$pkgdir/data/usr/share/gdb/auto-load/data/usr/lib/"
++  rm "$pkgdir"/data/usr/lib/libstdc++.so*
+ 
+   make DESTDIR="$pkgdir" install-fixincludes
+   make -C gcc DESTDIR="$pkgdir" install-mkheaders
+ 
+   make -C lto-plugin DESTDIR="$pkgdir" install
+-  install -dm755 "$pkgdir"/usr/lib/bfd-plugins/
++  install -dm755 "$pkgdir"/data/usr/lib/bfd-plugins/
+   ln -s /${_libdir}/liblto_plugin.so \
+-    "$pkgdir/usr/lib/bfd-plugins/"
++    "$pkgdir/data/usr/lib/bfd-plugins/"
+ 
+   make -C $CHOST/libgomp DESTDIR="$pkgdir" install-nodist_{libsubinclude,toolexeclib}HEADERS
+   make -C $CHOST/libitm DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+   make -C $CHOST/libquadmath DESTDIR="$pkgdir" install-nodist_libsubincludeHEADERS
+   make -C $CHOST/libsanitizer DESTDIR="$pkgdir" install-nodist_{saninclude,toolexeclib}HEADERS
+   make -C $CHOST/libsanitizer/asan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+-  make -C $CHOST/libsanitizer/tsan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+   make -C $CHOST/libsanitizer/lsan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+-  make -C $CHOST/32/libgomp DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+-  make -C $CHOST/32/libitm DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+-  make -C $CHOST/32/libsanitizer DESTDIR="$pkgdir" install-nodist_{saninclude,toolexeclib}HEADERS
+-  make -C $CHOST/32/libsanitizer/asan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+ 
+   make -C gcc DESTDIR="$pkgdir" install-man install-info
+-  rm "$pkgdir"/usr/share/man/man1/{gccgo,gfortran,lto-dump,gdc}.1
+-  rm "$pkgdir"/usr/share/info/{gccgo,gfortran,gnat-style,gnat_rm,gnat_ugn,gdc}.info
++  rm "$pkgdir"/data/usr/share/man/man1/{gccgo,gfortran,lto-dump,gdc}.1
++  rm "$pkgdir"/data/usr/share/info/{gccgo,gfortran,gdc}.info
+ 
+   make -C libcpp DESTDIR="$pkgdir" install
+   make -C gcc DESTDIR="$pkgdir" install-po
+ 
+   # many packages expect this symlink
+-  ln -s gcc "$pkgdir"/usr/bin/cc
++  ln -s gcc "$pkgdir"/data/usr/bin/cc
+ 
+   # create cc-rs compatible symlinks
+-  # https://github.com/rust-lang/cc-rs/blob/1.0.73/src/lib.rs#L2578-L2581
++  # https://github.com/rust-lang/cc-rs/blob/1.0.73/src/lib.rs#L2624
+   for binary in {c++,g++,gcc,gcc-ar,gcc-nm,gcc-ranlib}; do
+-    ln -s /usr/bin/${binary} "${pkgdir}"/usr/bin/x86_64-linux-gnu-${binary}
++    ln -s /data/usr/bin/${binary} "${pkgdir}"/data/usr/bin/riscv64-linux-gnu-${binary}
+   done
+ 
+   # POSIX conformance launcher scripts for c89 and c99
+-  install -Dm755 "$srcdir/c89" "$pkgdir/usr/bin/c89"
+-  install -Dm755 "$srcdir/c99" "$pkgdir/usr/bin/c99"
++  install -Dm755 "$srcdir/c89" "$pkgdir/data/usr/bin/c89"
++  install -Dm755 "$srcdir/c99" "$pkgdir/data/usr/bin/c99"
+ 
+   # install the libstdc++ man pages
+   make -C $CHOST/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
+ 
+-  # remove files provided by lib32-gcc-libs
+-  rm -f "$pkgdir"/usr/lib32/lib{stdc++,gcc_s}.so
+-
+   # byte-compile python libraries
+-  python -m compileall "$pkgdir/usr/share/gcc-${pkgver%%+*}/"
+-  python -O -m compileall "$pkgdir/usr/share/gcc-${pkgver%%+*}/"
++  python -m compileall "$pkgdir/data/usr/share/gcc-${pkgver%%+*}/"
++  python -O -m compileall "$pkgdir/data/usr/share/gcc-${pkgver%%+*}/"
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+ 
+ package_gcc-fortran() {
+@@ -298,18 +307,16 @@ package_gcc-fortran() {
+   cd gcc-build
+   make -C $CHOST/libgfortran DESTDIR="$pkgdir" install-cafexeclibLTLIBRARIES \
+     install-{toolexeclibDATA,nodist_fincludeHEADERS,gfor_cHEADERS}
+-  make -C $CHOST/32/libgfortran DESTDIR="$pkgdir" install-cafexeclibLTLIBRARIES \
+-    install-{toolexeclibDATA,nodist_fincludeHEADERS,gfor_cHEADERS}
+   make -C $CHOST/libgomp DESTDIR="$pkgdir" install-nodist_fincludeHEADERS
+   make -C gcc DESTDIR="$pkgdir" fortran.install-{common,man,info}
+   install -Dm755 gcc/f951 "$pkgdir/${_libdir}/f951"
+ 
+-  ln -s gfortran "$pkgdir/usr/bin/f95"
++  ln -s gfortran "$pkgdir/data/usr/bin/f95"
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+ 
+ package_gcc-objc() {
+@@ -324,48 +331,9 @@ package_gcc-objc() {
+   install -m755 gcc/cc1obj{,plus} "$pkgdir/${_libdir}/"
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
+-}
+-
+-package_gcc-ada() {
+-  pkgdesc='Ada front-end for GCC (GNAT)'
+-  depends=("gcc=$pkgver-$pkgrel" libisl.so)
+-  provides=($pkgname-multilib)
+-  replaces=($pkgname-multilib)
+-  options=(!emptydirs staticlibs)
+-
+-  cd gcc-build/gcc
+-  make DESTDIR="$pkgdir" ada.install-{common,info}
+-  install -m755 gnat1 "$pkgdir/${_libdir}"
+-
+-  cd "$srcdir"/gcc-build/$CHOST/libada
+-  make DESTDIR="${pkgdir}" INSTALL="install" \
+-    INSTALL_DATA="install -m644" install-libada
+-
+-  cd "$srcdir"/gcc-build/$CHOST/32/libada
+-  make DESTDIR="${pkgdir}" INSTALL="install" \
+-    INSTALL_DATA="install -m644" install-libada
+-
+-  ln -s gcc "$pkgdir/usr/bin/gnatgcc"
+-
+-  # insist on dynamic linking, but keep static libraries because gnatmake complains
+-  mv "$pkgdir"/${_libdir}/adalib/libgna{rl,t}-${_majorver}.so "$pkgdir/usr/lib"
+-  ln -s libgnarl-${_majorver}.so "$pkgdir/usr/lib/libgnarl.so"
+-  ln -s libgnat-${_majorver}.so "$pkgdir/usr/lib/libgnat.so"
+-  rm -f "$pkgdir"/${_libdir}/adalib/libgna{rl,t}.so
+-
+-  install -d "$pkgdir/usr/lib32/"
+-  mv "$pkgdir"/${_libdir}/32/adalib/libgna{rl,t}-${_majorver}.so "$pkgdir/usr/lib32"
+-  ln -s libgnarl-${_majorver}.so "$pkgdir/usr/lib32/libgnarl.so"
+-  ln -s libgnat-${_majorver}.so "$pkgdir/usr/lib32/libgnat.so"
+-  rm -f "$pkgdir"/${_libdir}/32/adalib/libgna{rl,t}.so
+-
+-  # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+ 
+ package_gcc-go() {
+@@ -377,53 +345,16 @@ package_gcc-go() {
+ 
+   cd gcc-build
+   make -C $CHOST/libgo DESTDIR="$pkgdir" install-exec-am
+-  make -C $CHOST/32/libgo DESTDIR="$pkgdir" install-exec-am
+   make DESTDIR="$pkgdir" install-gotools
+   make -C gcc DESTDIR="$pkgdir" go.install-{common,man,info}
+ 
+-  rm -f "$pkgdir"/usr/lib{,32}/libgo.so*
++  rm -f "$pkgdir"/data/usr/lib/libgo.so*
+   install -Dm755 gcc/go1 "$pkgdir/${_libdir}/go1"
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
+-}
+-
+-package_lib32-gcc-libs() {
+-  pkgdesc='32-bit runtime libraries shipped by GCC'
+-  depends=('lib32-glibc>=2.27')
+-  provides=(libgo.so libgfortran.so libubsan.so libasan.so)
+-  options=(!emptydirs !strip)
+-
+-  cd gcc-build
+-
+-  make -C $CHOST/32/libgcc DESTDIR="$pkgdir" install-shared
+-  rm -f "$pkgdir/$_libdir/32/libgcc_eh.a"
+-
+-  for lib in libatomic \
+-             libgfortran \
+-             libgo \
+-             libgomp \
+-             libitm \
+-             libquadmath \
+-             libsanitizer/{a,l,ub}san \
+-             libstdc++-v3/src \
+-             libvtv; do
+-    make -C $CHOST/32/$lib DESTDIR="$pkgdir" install-toolexeclibLTLIBRARIES
+-  done
+-
+-  make -C $CHOST/32/libobjc DESTDIR="$pkgdir" install-libs
+-
+-  make -C $CHOST/libphobos DESTDIR="$pkgdir" install
+-  rm -f "$pkgdir"/usr/lib32/libgphobos.spec
+-
+-  # remove files provided by gcc-libs
+-  rm -rf "$pkgdir"/usr/lib
+-
+-  # Install Runtime Library Exception
+-  install -Dm644 "$srcdir/gcc/COPYING.RUNTIME" \
+-    "$pkgdir/usr/share/licenses/lib32-gcc-libs/RUNTIME.LIBRARY.EXCEPTION"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+ 
+ package_gcc-d() {
+@@ -436,17 +367,16 @@ package_gcc-d() {
+   cd gcc-build
+   make -C gcc DESTDIR="$pkgdir" d.install-{common,man,info}
+ 
+-  install -Dm755 gcc/gdc "$pkgdir"/usr/bin/gdc
++  install -Dm755 gcc/gdc "$pkgdir"/data/usr/bin/gdc
+   install -Dm755 gcc/d21 "$pkgdir"/"$_libdir"/d21
+ 
+   make -C $CHOST/libphobos DESTDIR="$pkgdir" install
+-  rm -f "$pkgdir/usr/lib/"lib{gphobos,gdruntime}.so*
+-  rm -f "$pkgdir/usr/lib32/"lib{gphobos,gdruntime}.so*
++  rm -f "$pkgdir/data/usr/lib/"lib{gphobos,gdruntime}.so*
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+ 
+ #package_gcc-rust() {
+@@ -457,13 +387,13 @@ package_gcc-d() {
+ #  cd gcc-build
+ #  make -C gcc DESTDIR="$pkgdir" rust.install-{common,man,info}
+ #
+-#  install -Dm755 gcc/gccrs "$pkgdir"/usr/bin/gccrs
++#  install -Dm755 gcc/gccrs "$pkgdir"/data/usr/bin/gccrs
+ #  install -Dm755 gcc/rust1 "$pkgdir"/"$_libdir"/rust1
+ #
+ #  # Install Runtime Library Exception
+-#  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-#  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-#    "$pkgdir/usr/share/licenses/$pkgname/"
++#  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++#  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++#    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ #}
+ 
+ package_lto-dump() {
+@@ -474,9 +404,9 @@ package_lto-dump() {
+   make -C gcc DESTDIR="$pkgdir" lto.install-{common,man,info}
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+ 
+ package_libgccjit() {
+@@ -487,7 +417,7 @@ package_libgccjit() {
+   make -C gcc DESTDIR="$pkgdir" jit.install-common jit.install-info
+ 
+   # Install Runtime Library Exception
+-  install -d "$pkgdir/usr/share/licenses/$pkgname/"
+-  ln -s /usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
+-    "$pkgdir/usr/share/licenses/$pkgname/"
++  install -d "$pkgdir/data/usr/share/licenses/$pkgname/"
++  ln -s /data/usr/share/licenses/gcc-libs/RUNTIME.LIBRARY.EXCEPTION \
++    "$pkgdir/data/usr/share/licenses/$pkgname/"
+ }
+diff --git c89 c89
+index 35486ea..d75c2ec 100644
+--- c89
++++ c89
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ fl="-std=c89"
+ for opt; do
+   case "$opt" in
+diff --git c99 c99
+index 88dd806..c5c6045 100644
+--- c99
++++ c99
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ fl="-std=c99"
+ for opt; do
+   case "$opt" in

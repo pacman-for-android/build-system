@@ -1,0 +1,180 @@
+diff --git PKGBUILD PKGBUILD
+index 5b9c006..96fe18e 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,7 +7,6 @@
+ pkgbase=rust
+ pkgname=(
+   rust
+-  lib32-rust-libs
+   rust-musl
+   rust-wasm
+   rust-src
+@@ -37,7 +36,6 @@ depends=(
+ )
+ makedepends=(
+   cmake
+-  lib32-gcc-libs
+   libffi
+   lld
+   llvm
+@@ -94,15 +92,14 @@ link-shared = true
+ 
+ [build]
+ target = [
+-  "x86_64-unknown-linux-gnu",
+-  "i686-unknown-linux-gnu",
+-  "x86_64-unknown-linux-musl",
++  "aarch64-unknown-linux-gnu",
++  "aarch64-unknown-linux-musl",
+   "wasm32-unknown-unknown",
+   "wasm32-wasi",
+ ]
+-cargo = "/usr/bin/cargo"
+-rustc = "/usr/bin/rustc"
+-rustfmt = "/usr/bin/rustfmt"
++cargo = "/data/usr/bin/cargo"
++rustc = "/data/usr/bin/rustc"
++rustfmt = "/data/usr/bin/rustfmt"
+ locked-deps = true
+ vendor = true
+ tools = [
+@@ -122,7 +119,7 @@ profiler = true
+ docs = false
+ 
+ [install]
+-prefix = "/usr"
++prefix = "/data/usr"
+ 
+ [rust]
+ debuginfo-level-std = 2
+@@ -145,22 +142,18 @@ deny-warnings = false
+ [dist]
+ compression-formats = ["gz"]
+ 
+-[target.x86_64-unknown-linux-gnu]
+-cc = "/usr/bin/gcc"
+-cxx = "/usr/bin/g++"
+-ar = "/usr/bin/gcc-ar"
+-ranlib = "/usr/bin/gcc-ranlib"
+-llvm-config = "/usr/bin/llvm-config"
++[target.aarch64-unknown-linux-gnu]
++cc = "/data/usr/bin/gcc"
++cxx = "/data/usr/bin/g++"
++ar = "/data/usr/bin/gcc-ar"
++ranlib = "/data/usr/bin/gcc-ranlib"
++llvm-config = "/data/usr/bin/llvm-config"
+ 
+-[target.i686-unknown-linux-gnu]
+-cc = "/usr/bin/gcc"
+-cxx = "/usr/bin/g++"
+-ar = "/usr/bin/gcc-ar"
+-ranlib = "/usr/bin/gcc-ranlib"
+-
+-[target.x86_64-unknown-linux-musl]
++[target.aarch64-unknown-linux-musl]
+ sanitizers = false
+-musl-root = "/usr/lib/musl"
++musl-root = "/data/usr/lib/musl"
++cc = "/data/usr/bin/musl-gcc"
++cxx = "/data/usr/bin/musl-gcc"
+ 
+ [target.wasm32-unknown-unknown]
+ sanitizers = false
+@@ -169,7 +162,7 @@ profiler = false
+ [target.wasm32-wasi]
+ sanitizers = false
+ profiler = false
+-wasi-root = "/usr/share/wasi-sysroot"
++wasi-root = "/data/usr/share/wasi-sysroot"
+ END
+ }
+ 
+@@ -193,23 +186,20 @@ build() {
+   cd ../dest-rust
+ 
+   # delete unnecessary files, e.g. files only used for the uninstall script
+-  rm usr/bin/*.old
+-  rm usr/lib/rustlib/{components,install.log,rust-installer-version,uninstall.sh}
+-  rm usr/lib/rustlib/manifest-*
++  rm data/usr/bin/*.old
++  rm data/usr/lib/rustlib/{components,install.log,rust-installer-version,uninstall.sh}
++  rm data/usr/lib/rustlib/manifest-*
+ 
+   # rustbuild always installs copies of the shared libraries to /usr/lib,
+   # overwrite them with symlinks to the per-architecture versions
+-  mkdir -p usr/lib32
+-  ln -srft usr/lib   usr/lib/rustlib/x86_64-unknown-linux-gnu/lib/*.so
+-  ln -srft usr/lib32 usr/lib/rustlib/i686-unknown-linux-gnu/lib/*.so
++  ln -srft data/usr/lib   data/usr/lib/rustlib/aarch64-unknown-linux-gnu/lib/*.so
+ 
+-  mkdir -p usr/share/licenses/rust
+-  mv -t usr/share/licenses/rust usr/share/doc/rust/{COPYRIGHT,LICENSE*}
++  mkdir -p data/usr/share/licenses/rust
++  mv -t data/usr/share/licenses/rust data/usr/share/doc/rust/{COPYRIGHT,LICENSE*}
+ 
+-  _pick dest-i686 usr/lib/rustlib/i686-unknown-linux-gnu usr/lib32
+-  _pick dest-musl usr/lib/rustlib/x86_64-unknown-linux-musl
+-  _pick dest-wasm usr/lib/rustlib/wasm32-*
+-  _pick dest-src  usr/lib/rustlib/src
++  _pick dest-musl data/usr/lib/rustlib/aarch64-unknown-linux-musl
++  _pick dest-wasm data/usr/lib/rustlib/wasm32-*
++  _pick dest-src  data/usr/lib/rustlib/src
+ }
+ 
+ package_rust() {
+@@ -236,30 +226,14 @@ package_rust() {
+   cp -a dest-rust/* "$pkgdir"
+ }
+ 
+-package_lib32-rust-libs() {
+-  pkgdesc="32-bit target and libraries for Rust"
+-  depends=(
+-    lib32-gcc-libs
+-    rust
+-  )
+-  provides=(lib32-rust)
+-  conflicts=(lib32-rust)
+-  replaces=(lib32-rust)
+-
+-  cp -a dest-i686/* "$pkgdir"
+-
+-  mkdir -p "$pkgdir/usr/share/licenses"
+-  ln -s rust "$pkgdir/usr/share/licenses/$pkgname"
+-}
+-
+ package_rust-musl() {
+   pkgdesc="Musl target for Rust"
+   depends=(rust)
+ 
+   cp -a dest-musl/* "$pkgdir"
+ 
+-  mkdir -p "$pkgdir/usr/share/licenses"
+-  ln -s rust "$pkgdir/usr/share/licenses/$pkgname"
++  mkdir -p "$pkgdir/data/usr/share/licenses"
++  ln -s rust "$pkgdir/data/usr/share/licenses/$pkgname"
+ }
+ 
+ package_rust-wasm() {
+@@ -271,8 +245,8 @@ package_rust-wasm() {
+ 
+   cp -a dest-wasm/* "$pkgdir"
+ 
+-  mkdir -p "$pkgdir/usr/share/licenses"
+-  ln -s rust "$pkgdir/usr/share/licenses/$pkgname"
++  mkdir -p "$pkgdir/data/usr/share/licenses"
++  ln -s rust "$pkgdir/data/usr/share/licenses/$pkgname"
+ }
+ 
+ package_rust-src() {
+@@ -281,8 +255,8 @@ package_rust-src() {
+ 
+   cp -a dest-src/* "$pkgdir"
+ 
+-  mkdir -p "$pkgdir/usr/share/licenses"
+-  ln -s rust "$pkgdir/usr/share/licenses/$pkgname"
++  mkdir -p "$pkgdir/data/usr/share/licenses"
++  ln -s rust "$pkgdir/data/usr/share/licenses/$pkgname"
+ }
+ 
+ # vim:set ts=2 sw=2 et:

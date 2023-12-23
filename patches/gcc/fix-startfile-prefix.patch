@@ -1,0 +1,15 @@
+--- gcc/gcc.cc.orig	2023-10-15 11:31:07.377855311 +0000
++++ gcc/gcc.cc	2023-10-15 11:32:33.165855279 +0000
+@@ -1585,10 +1585,10 @@
+ /* Default prefixes to attach to command names.  */
+ 
+ #ifndef STANDARD_STARTFILE_PREFIX_1
+-#define STANDARD_STARTFILE_PREFIX_1 "/lib/"
++#define STANDARD_STARTFILE_PREFIX_1 "/data/usr/lib/"
+ #endif
+ #ifndef STANDARD_STARTFILE_PREFIX_2
+-#define STANDARD_STARTFILE_PREFIX_2 "/usr/lib/"
++#define STANDARD_STARTFILE_PREFIX_2 ""
+ #endif
+ 
+ #ifdef CROSS_DIRECTORY_STRUCTURE  /* Don't use these prefixes for a cross compiler.  */

@@ -1,0 +1,60 @@
+diff --git PKGBUILD PKGBUILD
+index e51b35b..6f084c6 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -18,7 +18,7 @@ validpgpkeys=('0048C8B026D4C96F0E589C2F6C859FB14B96A8C5') # Wayne Davison <wayne
+ source=("git+https://github.com/WayneD/rsync#tag=${_tag}?signed"
+         'rsyncd.conf')
+ sha256sums=('SKIP'
+-            '733ccb571721433c3a6262c58b658253ca6553bec79c2bdd0011810bb4f2156b')
++            'ede61b8deaf9dee57a2e243f3ec881c198c1b31e5ff5cb38cf723dc926f6ae4e')
+ 
+ _backports=(
+ )
+@@ -42,13 +42,17 @@ prepare() {
+     git log --oneline -1 "${_c}"
+     git revert -n "${_c}"
+   done
++  sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' md-convert
++  sed -i 's|SHELL[[:space:]]*=[[:space:]]*/bin/sh|SHELL = /data/usr/bin/sh|' prepare-source.mak
++  sed -i '1s|.*|#!/data/usr/bin/sh|' configure prepare-source install-sh mkgitver cmd-or-msg maybe-make-man packaging/{smart-make,prep-auto-dir}
+ }
+ 
+ build() {
+   cd ${pkgname}
+ 
+   ./configure \
+-    --prefix=/usr \
++    --prefix=/data/usr \
++    --sysconfdir=/data/etc \
+     --enable-ipv6 \
+     --disable-debug \
+     --with-rrsync \
+@@ -74,8 +78,8 @@ package() {
+   cd ${pkgname}
+ 
+   make DESTDIR="$pkgdir" install
+-  install -Dm0644 ../rsyncd.conf "$pkgdir/etc/rsyncd.conf"
+-  install -Dm0644 packaging/systemd/rsync.service "$pkgdir/usr/lib/systemd/system/rsyncd.service"
+-  install -Dm0644 packaging/systemd/rsync.socket "$pkgdir/usr/lib/systemd/system/rsyncd.socket"
+-  install -Dm0644 packaging/systemd/rsync@.service "$pkgdir/usr/lib/systemd/system/rsyncd@.service"
++  install -Dm0644 ../rsyncd.conf "$pkgdir/data/etc/rsyncd.conf"
++  install -Dm0644 packaging/systemd/rsync.service "$pkgdir/data/usr/lib/systemd/system/rsyncd.service"
++  install -Dm0644 packaging/systemd/rsync.socket "$pkgdir/data/usr/lib/systemd/system/rsyncd.socket"
++  install -Dm0644 packaging/systemd/rsync@.service "$pkgdir/data/usr/lib/systemd/system/rsyncd@.service"
+ }
+diff --git rsyncd.conf rsyncd.conf
+index 1521060..3a1e733 100644
+--- rsyncd.conf
++++ rsyncd.conf
+@@ -3,8 +3,8 @@ gid = nobody
+ use chroot = no
+ max connections = 4
+ syslog facility = local5
+-pid file = /run/rsyncd.pid
++pid file = /data/var/run/rsyncd.pid
+ 
+ [ftp]
+-        path = /srv/ftp
++        path = /data/srv/ftp
+         comment = ftp area

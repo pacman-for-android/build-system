@@ -1,0 +1,5 @@
+To build the python package,
+First create /dev/shm (permission 777) and mount it with tmpfs:
+
+sudo mkdir -m 777 /dev/shm
+sudo mount -t tmpfs none /dev/shm

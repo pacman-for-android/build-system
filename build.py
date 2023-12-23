@@ -14,6 +14,7 @@ parser.add_argument("pkg")
 parser.add_argument("--repo", default=None)
 parser.add_argument("--pkgrel", default=None)
 parser.add_argument("--chroot", default=None)
+parser.add_argument("--checkout", default='main')
 
 
 def read_list(list_file):
@@ -22,12 +23,11 @@ def read_list(list_file):
 
 plain_change_list = read_list("plain-change.list")
 plain_autoconf_list = read_list("plain-autoconf.list")
-patch_list = read_list("patch.list")
 shebang_fixup_list = read_list("shebang-fixup.list")
 
-def init_source(pkg):
+def init_source(pkg, checkout):
     print("Initializing source for", pkg, "...")
-    p = run(["bash", str(repo_root / "init-source.bash"), pkg],
+    p = run(["bash", str(repo_root / "init-source.bash"), pkg, checkout],
             cwd=sources_dir, check=True)
 
 
@@ -49,9 +49,9 @@ def fix_shebang(pkg, pkgbuild_path):
         run(["bash", str(recipes_dir / "shebang-fixup.bash"), pkgbuild_path], check=True)
 
 
-def build(pkg, repo=None, pkgrel=None, chroot=None):
+def build(pkg, repo=None, pkgrel=None, chroot=None, checkout='main'):
     print("Building", pkg, "...")
-    init_source(pkg)
+    init_source(pkg, checkout)
     patch_source(pkg)
     pkgbuild_path = sources_dir / pkg / "PKGBUILD"
     if pkg in plain_change_list:
@@ -77,4 +77,4 @@ def build(pkg, repo=None, pkgrel=None, chroot=None):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    build(args.pkg, args.repo, args.pkgrel, args.chroot)
+    build(args.pkg, args.repo, args.pkgrel, args.chroot, args.checkout)

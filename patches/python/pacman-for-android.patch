@@ -1,0 +1,42 @@
+diff --git PKGBUILD PKGBUILD
+index 3124039..35ab781 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -17,7 +17,7 @@ arch=('x86_64')
+ license=('custom')
+ url="https://www.python.org/"
+ depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib' 'tzdata')
+-makedepends=('tk' 'sqlite' 'bluez-libs' 'mpdecimal' 'llvm' 'gdb' 'xorg-server-xvfb' 'ttf-font')
++makedepends=('sqlite' 'mpdecimal' 'llvm' 'gdb' 'ttf-font')
+ source=("https://www.python.org/ftp/python/${pkgver%rc*}/Python-${pkgver}.tar.xz"{,.asc}
+         $pkgbase-3.11.5-raw_fstring.patch::https://github.com/python/cpython/commit/ed749be3aab081ce4e5d54e0273b96bdea02983f.patch
+         EXTERNALLY-MANAGED)
+@@ -29,11 +29,15 @@ validpgpkeys=('0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D'  # Ned Deily (Python re
+               'E3FF2839C048B25C084DEBE9B26995E310250568'  # Łukasz Langa (GPG langa.pl) <lukasz@langa.pl>
+               'A035C8C19219BA821ECEA86B64E628F8D684696D') # Pablo Galindo Salgado <pablogsal@gmail.com>
+ 
++source+=(python-change-prefix.patch)
++sha512sums+=('2fafcad4bb1526c514a38c3f99333e3a39d6ef6ba0a3c88cdd5a8cad66d856d904f7a827dc41fb40909530a097720a7f5f79b248993c25d136c2b0a97406ae0b')
++
+ prepare() {
+   cd Python-${pkgver}
+ 
+   # test fails due to unhandled warning: https://github.com/python/cpython/issues/108569
+   patch -Np1 -i ../$pkgbase-3.11.5-raw_fstring.patch
++  patch -Np2 -i ../python-change-prefix.patch
+ 
+   # FS#23997
+   sed -i -e "s|^#.* /usr/local/bin/python|#!/usr/bin/python|" Lib/cgi.py
+@@ -65,11 +69,7 @@ build() {
+               --without-ensurepip \
+               --with-tzpath=/usr/share/zoneinfo
+ 
+-  # Obtain next free server number for xvfb-run; this even works in a chroot environment.
+-  export servernum=99
+-  while ! xvfb-run -a -n "$servernum" /bin/true 2>/dev/null; do servernum=$((servernum+1)); done
+-
+-  LC_CTYPE=en_US.UTF-8 xvfb-run -s "-screen 0 1920x1080x16 -ac +extension GLX" -a -n "$servernum" make EXTRA_CFLAGS="$CFLAGS"
++  LC_CTYPE=en_US.UTF-8 make EXTRA_CFLAGS="$CFLAGS"
+ }
+ 
+ check() {

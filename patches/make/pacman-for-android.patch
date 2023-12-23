@@ -1,0 +1,19 @@
+diff --git PKGBUILD PKGBUILD
+index c768934..c45e0a6 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -15,6 +15,14 @@ sha256sums=('8814ba072182b605d156d7589c19a43b89fc58ea479b9355146160946f8cf6e9'
+             'SKIP')
+ validpgpkeys=('6D4EEB02AD834703510B117680CB727A20C79BB2')   # Paul Smith
+ 
++source+=(make-change-shell.patch)
++sha256sums+=('1e9ea718d9ef354f191f61bbf20bd3a524052950a618544ef16bf1daeeb174d7')
++
++prepare() {
++	cd "${pkgname}-${pkgver}"
++	patch -Np2 -i ../make-change-shell.patch
++}
++
+ build() {
+ 	cd "${pkgname}-${pkgver}"
+ 	./configure --prefix=/usr

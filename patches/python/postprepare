@@ -1,0 +1,4 @@
+sed -i '1s|.*|#!/data/usr/bin/sh|' configure install-sh Lib/ctypes/macholib/fetch_macholib Modules/ld_so_aix.in Tools/wasm/wasi-env Modules/makexp_aix Modules/makesetup Misc/python-config.sh.in
+sed -i 's|"/bin/sh"|"/data/usr/bin/sh"|g' Lib/subprocess.py
+sed -i "s|'/bin/sh'|'/data/usr/bin/sh'|g" Lib/subprocess.py
+sed -i 's|/bin/sh|/data/usr/bin/sh|' Makefile.pre.in

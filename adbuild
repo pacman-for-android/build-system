@@ -10,7 +10,7 @@ colorize
 # Config
 #
 
-remote_dir="/data/home/shell/stage2"
+remote_dir="/data/home/shell"
 repo_dir="/home/kxxt/Workspaces/linearch/repos"
 
 #
@@ -79,7 +79,7 @@ fi
 if [[ -z $NOBUILD ]]; then
     msg "Building package"
     # adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && makepkg -L --skippgpcheck --nocheck -s $MAKEPKG_FLAGS\""
-    adb shell -tt /data/usr/bin/bash "-ic" "\". /data/etc/profile && cd $remote_pkgbuild_dir && extra-aarch64-build -- $MAKECHROOTPKG_FLAGS -- --skippgpcheck --nocheck $MAKEPKG_FLAGS\""
+    adb shell -tt /data/usr/bin/bash -ic "\"cd $remote_pkgbuild_dir && extra-aarch64-build -- $MAKECHROOTPKG_FLAGS -- --skippgpcheck --nocheck $MAKEPKG_FLAGS\""
 else
     warning "Skip build"
 fi
@@ -88,7 +88,7 @@ fi
 # Pull packages and logs
 #
 msg "Pulling logs"
-adb shell /data/usr/bin/bash -c "\"find $remote_pkgbuild_dir -type f -maxdepth 1 \( -name '*.log' -o -name '*.log.*'\" \)" | tr '\r' ' ' | xargs -r -i adb pull "{}" "$pkgbuild_dir"
+adb shell /data/usr/bin/bash -c "\"find $remote_pkgbuild_dir -type f -maxdepth 1 \( -name '*.log' -o -name '*.log.*' \)\"" | tr '\r' ' ' | xargs -r -i adb pull "{}" "$pkgbuild_dir"
 
 msg "Pulling packages"
 built_packages=$(adb shell /data/usr/bin/bash -c "\"find $remote_pkgbuild_dir -type f -maxdepth 1 \( -name '*.pkg.tar.zst' -o -name '*.pkg.tar.xz' \) || true\"" | tr '\r' ' ')

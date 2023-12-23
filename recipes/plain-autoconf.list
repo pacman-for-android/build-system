@@ -72,3 +72,6 @@ unix-tree
 pam
 coreutils
 chrpath
+make
+rsync
+gcc

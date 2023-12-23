@@ -1,0 +1,24 @@
+diff --git a/libgcc/config.host b/libgcc/config.host
+index 9d7212028d0..0f71af706ee 100644
+--- a/libgcc/config.host
++++ b/libgcc/config.host
+@@ -419,7 +419,7 @@ aarch64*-*-fuchsia*)
+ aarch64*-*-linux*)
+ 	extra_parts="$extra_parts crtfastmath.o"
+ 	md_unwind_header=aarch64/linux-unwind.h
+-	tmake_file="${tmake_file} ${cpu_type}/t-aarch64"
++	tmake_file="${tmake_file} ${cpu_type}/t-aarch64 ${cpu_type}/t-crtstuff"
+ 	tmake_file="${tmake_file} ${cpu_type}/t-lse t-slibgcc-libgcc"
+ 	tmake_file="${tmake_file} ${cpu_type}/t-softfp t-softfp t-crtfm"
+ 	tmake_file="${tmake_file} t-dfprules"
+diff --git a/libgcc/config/aarch64/t-crtstuff b/libgcc/config/aarch64/t-crtstuff
+new file mode 100644
+index 00000000000..685d11b3e66
+--- /dev/null
++++ b/libgcc/config/aarch64/t-crtstuff
+@@ -0,0 +1,5 @@
++# -fasynchronous-unwind-tables -funwind-tables is on by default for riscv linux
++# We turn it off for crt*.o because it would make __EH_FRAME_BEGIN__ point
++# to .eh_frame data from crtbeginT.o instead of the user-defined object
++# during static linking.
++CRTSTUFF_T_CFLAGS += -fno-asynchronous-unwind-tables -fno-unwind-tables

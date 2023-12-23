@@ -1,0 +1,243 @@
+diff --git PKGBUILD PKGBUILD
+index 5d9bac1..e7dd656 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,14 +7,14 @@
+ # NOTE: valgrind requires rebuilt with each major glibc version
+ 
+ pkgbase=glibc
+-pkgname=(glibc lib32-glibc glibc-locales)
++pkgname=(glibc glibc-locales)
+ pkgver=2.38
+ _commit=750a45a783906a19591fb8ff6b7841470f1f5701
+ pkgrel=7
+ arch=(x86_64)
+ url='https://www.gnu.org/software/libc'
+ license=(GPL LGPL)
+-makedepends=(git gd lib32-gcc-libs python)
++makedepends=(git python)
+ options=(staticlibs !lto)
+ source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
+         locale.gen.txt
+@@ -26,13 +26,16 @@ source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
+ validpgpkeys=(7273542B39962DF7B299931416792B4EA25340F8 # Carlos O'Donell
+               BC7C7372637EC10C57D7AA6579C43DFBF1CF2187) # Siddhesh Poyarekar
+ b2sums=('SKIP'
+-        'c859bf2dfd361754c9e3bbd89f10de31f8e81fd95dc67b77d10cb44e23834b096ba3caa65fbc1bd655a8696c6450dfd5a096c476b3abf5c7e125123f97ae1a72'
+-        '04fbb3b0b28705f41ccc6c15ed5532faf0105370f22133a2b49867e790df0491f5a1255220ff6ebab91a462f088d0cf299491b3eb8ea53534cb8638a213e46e3'
++        '8b4cb1fec0a5c5447816bcb7c622a34806e38ea719869ec4d830bf8ddca6ee880dac41f612d47ea84072fac538221eaf93eb7690a2701e3724376f1dcab211f4'
++        '10db43cc8dee6efd8349448609910f513d8bb551fecea82823a2e2bc7f2ed45f9e9280e253a0df76fa2030efb9ffa97838d2a32cad6c4d2310a9af53631315b9'
+         '7c265e6d36a5c0dff127093580827d15519b6c7205c2e1300e82f0fb5b9dd00b6accb40c56581f18179c4fbbc95bd2bf1b900ace867a83accde0969f7b609f8a'
+         'a6a5e2f2a627cc0d13d11a82458cfd0aa75ec1c5a3c7647e5d5a3bb1d4c0770887a3909bfda1236803d5bc9801bfd6251e13483e9adf797e4725332cd0d91a0e'
+         '214e995e84b342fe7b2a7704ce011b7c7fc74c2971f98eeb3b4e677b99c860addc0a7d91b8dc0f0b8be7537782ee331999e02ba48f4ccc1c331b60f27d715678'
+         '35e03ed912e1b0cd23783ab83ce919412885c141344905b8b67bbad4a86c48cf3e893806060e48d5737514ff80cea0b58b0e1f15707c32224579c416dcd810c0')
+ 
++source+=(glibc-change-pathes.patch)
++b2sums+=('f21927030e8ca222fb74aea23e9750bfe3bdc4ecc0beb6129e5466bf915481dd15872946ced40457508adb2ea4e06bbc67aacef42beafd5613542b965b18f602')
++
+ prepare() {
+   mkdir -p glibc-build lib32-glibc-build
+ 
+@@ -43,18 +46,20 @@ prepare() {
+   # which relies on DT_HASH to be present in these libs.
+   # reconsider 2023-01
+   patch -Np1 -i "${srcdir}"/reenable_DT_HASH.patch
++  patch -Np1 -i "${srcdir}"/glibc-change-pathes.patch
++  sed -i '1s|.*|#!/data/usr/bin/sh|' configure scripts/{install-sh,pylint,move-if-change,rellns-sh,mkinstalldirs,update-copyrights,*.sh,cpp}
+ }
+ 
+ build() {
+   local _configure_flags=(
+-      --prefix=/usr
+-      --with-headers=/usr/include
+-      --with-bugurl=https://bugs.archlinux.org/
++      --prefix=/data/usr
++      --sbindir=/data/usr/bin
++      --localstatedir=/data/var
++      --sysconfdir=/data/etc
++      --with-headers=/data/usr/include --disable-default-pie
+       --enable-bind-now
+-      --enable-cet
+       --enable-fortify-source
+       --enable-kernel=4.4
+-      --enable-multi-arch
+       --enable-stack-protector=strong
+       --enable-systemtap
+       --disable-nscd
+@@ -65,10 +70,10 @@ build() {
+   (
+     cd glibc-build
+ 
+-    echo "slibdir=/usr/lib" >> configparms
+-    echo "rtlddir=/usr/lib" >> configparms
+-    echo "sbindir=/usr/bin" >> configparms
+-    echo "rootsbindir=/usr/bin" >> configparms
++    echo "slibdir=/data/usr/lib" >> configparms
++    echo "rtlddir=/data/usr/lib" >> configparms
++    echo "sbindir=/data/usr/bin" >> configparms
++    echo "rootsbindir=/data/usr/bin" >> configparms
+ 
+     # Credits @allanmcrae
+     # https://github.com/allanmcrae/toolchain/blob/f18604d70c5933c31b51a320978711e4e6791cf1/glibc/PKGBUILD
+@@ -76,8 +81,8 @@ build() {
+     # CFLAGS=${CFLAGS/-Wp,-D_FORTIFY_SOURCE=2/}
+ 
+     "${srcdir}"/glibc/configure \
+-        --libdir=/usr/lib \
+-        --libexecdir=/usr/lib \
++        --libdir=/data/usr/lib \
++        --libexecdir=/data/usr/lib \
+         "${_configure_flags[@]}"
+ 
+     make -O
+@@ -86,24 +91,6 @@ build() {
+     make info
+   )
+ 
+-  (
+-    cd lib32-glibc-build
+-    export CC="gcc -m32 -mstackrealign"
+-    export CXX="g++ -m32 -mstackrealign"
+-
+-    echo "slibdir=/usr/lib32" >> configparms
+-    echo "rtlddir=/usr/lib32" >> configparms
+-    echo "sbindir=/usr/bin" >> configparms
+-    echo "rootsbindir=/usr/bin" >> configparms
+-
+-    "${srcdir}"/glibc/configure \
+-        --host=i686-pc-linux-gnu \
+-        --libdir=/usr/lib32 \
+-        --libexecdir=/usr/lib32 \
+-        "${_configure_flags[@]}"
+-
+-    make -O
+-  )
+ 
+   # pregenerate locales here instead of in package
+   # functions because localedef does not like fakeroot
+@@ -149,44 +136,44 @@ package_glibc() {
+   optdepends=('gd: for memusagestat'
+               'perl: for mtrace')
+   install=glibc.install
+-  backup=(etc/gai.conf
+-          etc/locale.gen)
++  backup=(data/etc/gai.conf
++          data/etc/locale.gen)
+ 
+   make -C glibc-build DESTDIR="${pkgdir}" install
+-  rm -f "${pkgdir}"/etc/ld.so.cache
++  rm -f "${pkgdir}"/data/etc/ld.so.cache
+ 
+   # Shipped in tzdata
+-  rm -f "${pkgdir}"/usr/bin/{tzselect,zdump,zic}
++  rm -f "${pkgdir}"/data/usr/bin/{tzselect,zdump,zic}
+ 
+   cd glibc
+ 
+-  install -dm755 "${pkgdir}"/usr/lib/{locale,systemd/system,tmpfiles.d}
++  install -dm755 "${pkgdir}"/data/usr/lib/{locale,systemd/system,tmpfiles.d}
+ 
+-  install -m644 posix/gai.conf "${pkgdir}"/etc/gai.conf
++  install -m644 posix/gai.conf "${pkgdir}"/data/etc/gai.conf
+ 
+-  install -m755 "${srcdir}"/locale-gen "${pkgdir}"/usr/bin
++  install -m755 "${srcdir}"/locale-gen "${pkgdir}"/data/usr/bin
+ 
+   # Create /etc/locale.gen
+-  install -m644 "${srcdir}"/locale.gen.txt "${pkgdir}"/etc/locale.gen
++  install -m644 "${srcdir}"/locale.gen.txt "${pkgdir}"/data/etc/locale.gen
+   sed -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' \
+-    localedata/SUPPORTED >> "${pkgdir}"/etc/locale.gen
++    localedata/SUPPORTED >> "${pkgdir}"/data/etc/locale.gen
+ 
+   # Add SUPPORTED file to pkg
+   sed -e '1,3d' -e 's|/| |g' -e 's| \\||g' \
+-    localedata/SUPPORTED > "${pkgdir}"/usr/share/i18n/SUPPORTED
++    localedata/SUPPORTED > "${pkgdir}"/data/usr/share/i18n/SUPPORTED
+ 
+   # install C.UTF-8 so that it is always available
+   # should be built into glibc eventually
+   # https://sourceware.org/glibc/wiki/Proposals/C.UTF-8
+   # https://bugs.archlinux.org/task/74864
+-  install -dm755 "${pkgdir}"/usr/lib/locale
+-  cp -r "${srcdir}"/locales/usr/lib/locale/C.utf8 -t "${pkgdir}"/usr/lib/locale
+-  sed -i '/#C\.UTF-8 /d' "${pkgdir}"/etc/locale.gen
++  install -dm755 "${pkgdir}"/data/usr/lib/locale
++  cp -r "${srcdir}"/locales/data/usr/lib/locale/C.utf8 -t "${pkgdir}"/data/usr/lib/locale
++  sed -i '/#C\.UTF-8 /d' "${pkgdir}"/data/etc/locale.gen
+ 
+   # Provide tracing probes to libstdc++ for exceptions, possibly for other
+   # libraries too. Useful for gdb's catch command.
+-  install -Dm644 "${srcdir}"/sdt.h "${pkgdir}"/usr/include/sys/sdt.h
+-  install -Dm644 "${srcdir}"/sdt-config.h "${pkgdir}"/usr/include/sys/sdt-config.h
++  install -Dm644 "${srcdir}"/sdt.h "${pkgdir}"/data/usr/include/sys/sdt.h
++  install -Dm644 "${srcdir}"/sdt-config.h "${pkgdir}"/data/usr/include/sys/sdt-config.h
+ }
+ 
+ package_lib32-glibc() {
+@@ -218,8 +205,8 @@ package_glibc-locales() {
+   depends=("glibc=$pkgver")
+ 
+   cp -r locales/* -t "${pkgdir}"
+-  rm -r "${pkgdir}"/usr/lib/locale/C.utf8
++  rm -r "${pkgdir}"/data/usr/lib/locale/C.utf8
+ 
+   # deduplicate locale data
+-  hardlink -c "${pkgdir}"/usr/lib/locale
++  hardlink -c "${pkgdir}"/data/usr/lib/locale
+ }
+diff --git locale-gen locale-gen
+index ee88880..fea85ca 100755
+--- locale-gen
++++ locale-gen
+@@ -1,9 +1,9 @@
+-#!/bin/sh
++#!/data/usr/bin/sh
+ 
+ set -e
+ 
+-LOCALEGEN=/etc/locale.gen
+-LOCALES=/usr/share/i18n/locales
++LOCALEGEN=/data/etc/locale.gen
++LOCALES=/data/usr/share/i18n/locales
+ if [ -n "$POSIXLY_CORRECT" ]; then
+   unset POSIXLY_CORRECT
+ fi
+@@ -13,7 +13,7 @@ fi
+ 
+ # Remove all old locale dir and locale-archive before generating new
+ # locale data.
+-rm -rf /usr/lib/locale/locale-archive || true
++rm -rf /data/usr/lib/locale/locale-archive || true
+ 
+ umask 022
+ 
+@@ -36,7 +36,7 @@ while read locale charset; do \
+ 	echo -n '...'; \
+         if [ -f $LOCALES/$locale ]; then input=$locale; else \
+         input=`echo $locale | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`; fi; \
+-	localedef -i $input -c -f $charset -A /usr/share/locale/locale.alias $locale; \
++	localedef -i $input -c -f $charset -A /data/usr/share/locale/locale.alias $locale; \
+ 	echo ' done'; \
+ done < $LOCALEGEN
+ echo "Generation complete."
+diff --git locale.gen.txt locale.gen.txt
+index e32af29..7928858 100644
+--- locale.gen.txt
++++ locale.gen.txt
+@@ -6,12 +6,12 @@
+ #
+ #     <locale> <charset>
+ #
+-#  where <locale> is one of the locales given in /usr/share/i18n/locales
+-#  and <charset> is one of the character sets listed in /usr/share/i18n/charmaps
++#  where <locale> is one of the locales given in /data/usr/share/i18n/locales
++#  and <charset> is one of the character sets listed in /data/usr/share/i18n/charmaps
+ #
+ #  The locale-gen command will generate all the locales,
+ #  placing them in /usr/lib/locale.
+ #
+-#  A list of supported locales is given in /usr/share/i18n/SUPPORTED
++#  A list of supported locales is given in /data/usr/share/i18n/SUPPORTED
+ #  and is included in this file. Uncomment the needed locales below.
+ #

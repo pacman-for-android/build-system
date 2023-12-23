@@ -1,0 +1,138 @@
+diff --git a/Python-3.11.5.orig/PC/launcher.c b/Python-3.11.5/PC/launcher.c
+index da566a1..6593944 100644
+--- a/Python-3.11.5.orig/PC/launcher.c
++++ b/Python-3.11.5/PC/launcher.c
+@@ -865,9 +865,9 @@ typedef struct {
+ } SHEBANG;
+ 
+ static SHEBANG builtin_virtual_paths [] = {
+-    { L"/usr/bin/env python", TRUE },
+-    { L"/usr/bin/python", FALSE },
+-    { L"/usr/local/bin/python", FALSE },
++    { L"/data/usr/bin/env python", TRUE },
++    { L"/data/usr/bin/python", FALSE },
++    { L"/data/usr/local/bin/python", FALSE },
+     { L"python", FALSE },
+     { NULL, FALSE },
+ };
+@@ -891,9 +891,9 @@ static wchar_t * builtin_prefixes [] = {
+      * i.e. if the prefix is "/usr/bin/env ", it should match that entry
+      * *before* matching "/usr/bin/".
+      */
+-    L"/usr/bin/env ",
+-    L"/usr/bin/",
+-    L"/usr/local/bin/",
++    L"/data/usr/bin/env ",
++    L"/data/usr/bin/",
++    L"/data/usr/local/bin/",
+     NULL
+ };
+ 
+diff --git a/Python-3.11.5.orig/PC/launcher2.c b/Python-3.11.5/PC/launcher2.c
+index 50685a0..218b65b 100644
+--- a/Python-3.11.5.orig/PC/launcher2.c
++++ b/Python-3.11.5/PC/launcher2.c
+@@ -761,7 +761,7 @@ searchPath(SearchInfo *search, const wchar_t *shebang, int shebangLength)
+ 
+     wchar_t *command;
+     int commandLength;
+-    if (!_shebangStartsWith(shebang, shebangLength, L"/usr/bin/env ", &command, &commandLength)) {
++    if (!_shebangStartsWith(shebang, shebangLength, L"/data/usr/bin/env ", &command, &commandLength)) {
+         return RC_NO_SHEBANG;
+     }
+ 
+@@ -1037,9 +1037,9 @@ checkShebang(SearchInfo *search)
+     int commandLength;
+     // Each template must end with "python"
+     static const wchar_t *shebangTemplates[] = {
+-        L"/usr/bin/env python",
+-        L"/usr/bin/python",
+-        L"/usr/local/bin/python",
++        L"/data/usr/bin/env python",
++        L"/data/usr/bin/python",
++        L"/data/usr/local/bin/python",
+         L"python",
+         NULL
+     };
+diff --git a/Python-3.11.5.orig/setup.py b/Python-3.11.5/setup.py
+index 4f122b6..908e7eb 100644
+--- a/Python-3.11.5.orig/setup.py
++++ b/Python-3.11.5/setup.py
+@@ -702,9 +702,9 @@ class PyBuildExt(build_ext):
+ 
+         if multiarch_path_component != '':
+             add_dir_to_list(self.compiler.library_dirs,
+-                            '/usr/lib/' + multiarch_path_component)
++                            '/data/usr/lib/' + multiarch_path_component)
+             add_dir_to_list(self.compiler.include_dirs,
+-                            '/usr/include/' + multiarch_path_component)
++                            '/data/usr/include/' + multiarch_path_component)
+             return
+ 
+         if not find_executable('dpkg-architecture'):
+@@ -723,9 +723,9 @@ class PyBuildExt(build_ext):
+                 with open(tmpfile) as fp:
+                     multiarch_path_component = fp.readline().strip()
+                 add_dir_to_list(self.compiler.library_dirs,
+-                                '/usr/lib/' + multiarch_path_component)
++                                '/data/usr/lib/' + multiarch_path_component)
+                 add_dir_to_list(self.compiler.include_dirs,
+-                                '/usr/include/' + multiarch_path_component)
++                                '/data/usr/include/' + multiarch_path_component)
+         finally:
+             os.unlink(tmpfile)
+ 
+@@ -847,8 +847,8 @@ class PyBuildExt(build_ext):
+         # directories (i.e. '.' and 'Include') must be first.  See issue
+         # 10520.
+         if not CROSS_COMPILING:
+-            add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+-            add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
++            add_dir_to_list(self.compiler.library_dirs, '/data/usr/local/lib')
++            add_dir_to_list(self.compiler.include_dirs, '/data/usr/local/include')
+         # only change this for cross builds for 3.3, issues on Mageia
+         if CROSS_COMPILING:
+             self.add_cross_compiling_paths()
+@@ -857,7 +857,7 @@ class PyBuildExt(build_ext):
+ 
+     def init_inc_lib_dirs(self):
+         if (not CROSS_COMPILING and
+-                os.path.normpath(sys.base_prefix) != '/usr' and
++                os.path.normpath(sys.base_prefix) != '/data/usr' and
+                 not sysconfig.get_config_var('PYTHONFRAMEWORK')):
+             # OSX note: Don't add LIBDIR and INCLUDEDIR to building a framework
+             # (PYTHONFRAMEWORK is set) to avoid # linking problems when
+@@ -868,8 +868,8 @@ class PyBuildExt(build_ext):
+             add_dir_to_list(self.compiler.include_dirs,
+                             sysconfig.get_config_var("INCLUDEDIR"))
+ 
+-        system_lib_dirs = ['/lib64', '/usr/lib64', '/lib', '/usr/lib']
+-        system_include_dirs = ['/usr/include']
++        system_lib_dirs = ['/data/usr/lib']
++        system_include_dirs = ['/data/usr/include']
+         # lib_dirs and inc_dirs are used to search for files;
+         # if a file is found in one of those directories, it can
+         # be assumed that no additional -I,-L directives are needed.
+@@ -1108,11 +1108,11 @@ class PyBuildExt(build_ext):
+             elif curses_library:
+                 readline_libs.append(curses_library)
+             elif self.compiler.find_library_file(self.lib_dirs +
+-                                                     ['/usr/lib/termcap'],
++                                                     ['/data/usr/lib/termcap'],
+                                                      'termcap'):
+                 readline_libs.append('termcap')
+             self.add(Extension('readline', ['readline.c'],
+-                               library_dirs=['/usr/lib/termcap'],
++                               library_dirs=['/data/usr/lib/termcap'],
+                                libraries=readline_libs))
+         else:
+             self.missing.append('readline')
+@@ -1125,7 +1125,7 @@ class PyBuildExt(build_ext):
+         if curses_library == 'ncursesw':
+             curses_defines.append(('HAVE_NCURSESW', '1'))
+             if not CROSS_COMPILING:
+-                curses_includes.append('/usr/include/ncursesw')
++                curses_includes.append('/data/usr/include/ncursesw')
+             # Bug 1464056: If _curses.so links with ncursesw,
+             # _curses_panel.so must link with panelw.
+             panel_library = 'panelw'

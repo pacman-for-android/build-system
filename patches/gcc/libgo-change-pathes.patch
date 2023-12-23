@@ -1,0 +1,253 @@
+diff --git a/libgo/go/crypto/x509/root_linux.go b/libgo/go/crypto/x509/root_linux.go
+index e32989b999e..fc30e725993 100644
+--- a/libgo/go/crypto/x509/root_linux.go
++++ b/libgo/go/crypto/x509/root_linux.go
+@@ -6,17 +6,17 @@ package x509
+ 
+ // Possible certificate files; stop after finding one.
+ var certFiles = []string{
+-	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
+-	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
+-	"/etc/ssl/ca-bundle.pem",                            // OpenSUSE
+-	"/etc/pki/tls/cacert.pem",                           // OpenELEC
+-	"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
+-	"/etc/ssl/cert.pem",                                 // Alpine Linux
++	"/data/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
++	"/data/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
++	"/data/etc/ssl/ca-bundle.pem",                            // OpenSUSE
++	"/data/etc/pki/tls/cacert.pem",                           // OpenELEC
++	"/data/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
++	"/data/etc/ssl/cert.pem",                                 // Alpine Linux
+ }
+ 
+ // Possible directories with certificate files; all will be read.
+ var certDirectories = []string{
+-	"/etc/ssl/certs",               // SLES10/SLES11, https://golang.org/issue/12139
+-	"/etc/pki/tls/certs",           // Fedora/RHEL
++	"/data/etc/ssl/certs",          // SLES10/SLES11, https://golang.org/issue/12139
++	"/data/etc/pki/tls/certs",      // Fedora/RHEL
+ 	"/system/etc/security/cacerts", // Android
+ }
+diff --git a/libgo/go/mime/type_unix.go b/libgo/go/mime/type_unix.go
+index 3cd10a975c8..1a03df31fa3 100644
+--- a/libgo/go/mime/type_unix.go
++++ b/libgo/go/mime/type_unix.go
+@@ -19,16 +19,16 @@ func init() {
+ // See https://specifications.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-0.21.html
+ // for the FreeDesktop Shared MIME-info Database specification.
+ var mimeGlobs = []string{
+-	"/usr/local/share/mime/globs2",
+-	"/usr/share/mime/globs2",
++	"/data/usr/local/share/mime/globs2",
++	"/data/usr/share/mime/globs2",
+ }
+ 
+ // Common locations for mime.types files on unix.
+ var typeFiles = []string{
+-	"/etc/mime.types",
+-	"/etc/apache2/mime.types",
+-	"/etc/apache/mime.types",
+-	"/etc/httpd/conf/mime.types",
++	"/data/etc/mime.types",
++	"/data/etc/apache2/mime.types",
++	"/data/etc/apache/mime.types",
++	"/data/etc/httpd/conf/mime.types",
+ }
+ 
+ func loadMimeGlobsFile(filename string) error {
+diff --git a/libgo/go/net/conf.go b/libgo/go/net/conf.go
+index 6edecaf9388..a06278a74bb 100644
+--- a/libgo/go/net/conf.go
++++ b/libgo/go/net/conf.go
+@@ -95,10 +95,10 @@ func initConfVal() {
+ 	}
+ 
+ 	if runtime.GOOS != "openbsd" {
+-		confVal.nss = parseNSSConfFile("/etc/nsswitch.conf")
++		confVal.nss = parseNSSConfFile("/data/etc/nsswitch.conf")
+ 	}
+ 
+-	confVal.resolv = dnsReadConfig("/etc/resolv.conf")
++	confVal.resolv = dnsReadConfig("/data/etc/resolv.conf")
+ 	if confVal.resolv.err != nil && !os.IsNotExist(confVal.resolv.err) &&
+ 		!os.IsPermission(confVal.resolv.err) {
+ 		// If we can't read the resolv.conf file, assume it
+@@ -108,7 +108,7 @@ func initConfVal() {
+ 		confVal.forceCgoLookupHost = true
+ 	}
+ 
+-	if _, err := os.Stat("/etc/mdns.allow"); err == nil {
++	if _, err := os.Stat("/data/etc/mdns.allow"); err == nil {
+ 		confVal.hasMDNSAllow = true
+ 	}
+ }
+@@ -278,13 +278,15 @@ func (c *conf) hostLookupOrder(r *Resolver, hostname string) (ret hostLookupOrde
+ 
+ // goDebugNetDNS parses the value of the GODEBUG "netdns" value.
+ // The netdns value can be of the form:
+-//    1       // debug level 1
+-//    2       // debug level 2
+-//    cgo     // use cgo for DNS lookups
+-//    go      // use go for DNS lookups
+-//    cgo+1   // use cgo for DNS lookups + debug level 1
+-//    1+cgo   // same
+-//    cgo+2   // same, but debug level 2
++//
++//	1       // debug level 1
++//	2       // debug level 2
++//	cgo     // use cgo for DNS lookups
++//	go      // use go for DNS lookups
++//	cgo+1   // use cgo for DNS lookups + debug level 1
++//	1+cgo   // same
++//	cgo+2   // same, but debug level 2
++//
+ // etc.
+ func goDebugNetDNS() (dnsMode string, debugLevel int) {
+ 	goDebug := godebug.Get("netdns")
+diff --git a/libgo/go/net/dnsclient_unix.go b/libgo/go/net/dnsclient_unix.go
+index ad121a6fa93..831b97e79bc 100644
+--- a/libgo/go/net/dnsclient_unix.go
++++ b/libgo/go/net/dnsclient_unix.go
+@@ -338,7 +338,7 @@ func (conf *resolverConfig) init() {
+ 	// resolv.conf twice the first time.
+ 	conf.dnsConfig = systemConf().resolv
+ 	if conf.dnsConfig == nil {
+-		conf.dnsConfig = dnsReadConfig("/etc/resolv.conf")
++		conf.dnsConfig = dnsReadConfig("/data/etc/resolv.conf")
+ 	}
+ 	conf.lastChecked = time.Now()
+ 
+@@ -401,7 +401,7 @@ func (r *Resolver) lookup(ctx context.Context, name string, qtype dnsmessage.Typ
+ 		// For consistency with libc resolvers, report no such host.
+ 		return dnsmessage.Parser{}, "", &DNSError{Err: errNoSuchHost.Error(), Name: name, IsNotFound: true}
+ 	}
+-	resolvConf.tryUpdate("/etc/resolv.conf")
++	resolvConf.tryUpdate("/data/etc/resolv.conf")
+ 	resolvConf.mu.RLock()
+ 	conf := resolvConf.dnsConfig
+ 	resolvConf.mu.RUnlock()
+@@ -578,7 +578,7 @@ func (r *Resolver) goLookupIPCNAMEOrder(ctx context.Context, network, name strin
+ 		// See comment in func lookup above about use of errNoSuchHost.
+ 		return nil, dnsmessage.Name{}, &DNSError{Err: errNoSuchHost.Error(), Name: name, IsNotFound: true}
+ 	}
+-	resolvConf.tryUpdate("/etc/resolv.conf")
++	resolvConf.tryUpdate("/data/etc/resolv.conf")
+ 	resolvConf.mu.RLock()
+ 	conf := resolvConf.dnsConfig
+ 	resolvConf.mu.RUnlock()
+diff --git a/libgo/go/net/http/cgi/host.go b/libgo/go/net/http/cgi/host.go
+index 95b2e13e4ef..1b176cc275c 100644
+--- a/libgo/go/net/http/cgi/host.go
++++ b/libgo/go/net/http/cgi/host.go
+@@ -90,10 +90,11 @@ func (h *Handler) stderr() io.Writer {
+ 
+ // removeLeadingDuplicates remove leading duplicate in environments.
+ // It's possible to override environment like following.
+-//    cgi.Handler{
+-//      ...
+-//      Env: []string{"SCRIPT_FILENAME=foo.php"},
+-//    }
++//
++//	cgi.Handler{
++//	  ...
++//	  Env: []string{"SCRIPT_FILENAME=foo.php"},
++//	}
+ func removeLeadingDuplicates(env []string) (ret []string) {
+ 	for i, e := range env {
+ 		found := false
+@@ -183,7 +184,7 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+ 
+ 	envPath := os.Getenv("PATH")
+ 	if envPath == "" {
+-		envPath = "/bin:/usr/bin:/usr/ucb:/usr/bsd:/usr/local/bin"
++		envPath = "/data/usr/bin:/system/bin"
+ 	}
+ 	env = append(env, "PATH="+envPath)
+ 
+diff --git a/libgo/go/net/lookup_unix.go b/libgo/go/net/lookup_unix.go
+index 0d25f22fd21..7ef0263ea3e 100644
+--- a/libgo/go/net/lookup_unix.go
++++ b/libgo/go/net/lookup_unix.go
+@@ -20,7 +20,7 @@ var onceReadProtocols sync.Once
+ // readProtocols loads contents of /etc/protocols into protocols map
+ // for quick access.
+ func readProtocols() {
+-	file, err := open("/etc/protocols")
++	file, err := open("/data/etc/protocols")
+ 	if err != nil {
+ 		return
+ 	}
+diff --git a/libgo/go/net/port_unix.go b/libgo/go/net/port_unix.go
+index 3527f1f77be..19085e5731a 100644
+--- a/libgo/go/net/port_unix.go
++++ b/libgo/go/net/port_unix.go
+@@ -16,7 +16,7 @@ import (
+ var onceReadServices sync.Once
+ 
+ func readServices() {
+-	file, err := open("/etc/services")
++	file, err := open("/data/etc/services")
+ 	if err != nil {
+ 		return
+ 	}
+diff --git a/libgo/go/os/user/listgroups_unix.go b/libgo/go/os/user/listgroups_unix.go
+index af9b544bcbe..b3095adfec3 100644
+--- a/libgo/go/os/user/listgroups_unix.go
++++ b/libgo/go/os/user/listgroups_unix.go
+@@ -16,7 +16,7 @@ import (
+ 	"strconv"
+ )
+ 
+-const groupFile = "/etc/group"
++const groupFile = "/data/etc/group"
+ 
+ var colon = []byte{':'}
+ 
+diff --git a/libgo/go/os/user/lookup_unix.go b/libgo/go/os/user/lookup_unix.go
+index 090fad20e30..c5a363b10ed 100644
+--- a/libgo/go/os/user/lookup_unix.go
++++ b/libgo/go/os/user/lookup_unix.go
+@@ -16,7 +16,7 @@ import (
+ 	"strings"
+ )
+ 
+-const userFile = "/etc/passwd"
++const userFile = "/data/etc/passwd"
+ 
+ // lineFunc returns a value, an error, or (nil, nil) to skip the row.
+ type lineFunc func(line []byte) (v any, err error)
+diff --git a/libgo/go/time/zoneinfo_unix.go b/libgo/go/time/zoneinfo_unix.go
+index c11fa7282c4..318da0b7b89 100644
+--- a/libgo/go/time/zoneinfo_unix.go
++++ b/libgo/go/time/zoneinfo_unix.go
+@@ -19,9 +19,9 @@ import (
+ // Many systems use /usr/share/zoneinfo, Solaris 2 has
+ // /usr/share/lib/zoneinfo, IRIX 6 has /usr/lib/locale/TZ.
+ var zoneSources = []string{
+-	"/usr/share/zoneinfo/",
+-	"/usr/share/lib/zoneinfo/",
+-	"/usr/lib/locale/TZ/",
++	"/data/usr/share/zoneinfo/",
++	"/data/usr/share/lib/zoneinfo/",
++	"/data/usr/lib/locale/TZ/",
+ 	runtime.GOROOT() + "/lib/time/zoneinfo.zip",
+ }
+ 
+@@ -36,7 +36,7 @@ func initLocal() {
+ 	tz, ok := syscall.Getenv("TZ")
+ 	switch {
+ 	case !ok:
+-		z, err := loadLocation("localtime", []string{"/etc"})
++		z, err := loadLocation("localtime", []string{"/data/etc"})
+ 		if err == nil {
+ 			localLoc = *z
+ 			localLoc.name = "Local"
+@@ -49,7 +49,7 @@ func initLocal() {
+ 		if tz != "" && tz[0] == '/' {
+ 			if z, err := loadLocation(tz, []string{""}); err == nil {
+ 				localLoc = *z
+-				if tz == "/etc/localtime" {
++				if tz == "/data/etc/localtime" {
+ 					localLoc.name = "Local"
+ 				} else {
+ 					localLoc.name = tz

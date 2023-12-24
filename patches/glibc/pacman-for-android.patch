@@ -1,5 +1,5 @@
 diff --git PKGBUILD PKGBUILD
-index 5d9bac1..e7dd656 100644
+index 5d9bac1..d26096e 100644
 --- PKGBUILD
 +++ PKGBUILD
 @@ -7,14 +7,14 @@
@@ -38,7 +38,7 @@ index 5d9bac1..e7dd656 100644
  prepare() {
    mkdir -p glibc-build lib32-glibc-build
  
-@@ -43,18 +46,20 @@ prepare() {
+@@ -43,18 +46,23 @@ prepare() {
    # which relies on DT_HASH to be present in these libs.
    # reconsider 2023-01
    patch -Np1 -i "${srcdir}"/reenable_DT_HASH.patch
@@ -47,6 +47,9 @@ index 5d9bac1..e7dd656 100644
  }
  
  build() {
++  # ldconfig segfaults on aarch64 with -fno-plt
++  CFLAGS=${CFLAGS/-fno-plt /}
++
    local _configure_flags=(
 -      --prefix=/usr
 -      --with-headers=/usr/include
@@ -55,7 +58,7 @@ index 5d9bac1..e7dd656 100644
 +      --sbindir=/data/usr/bin
 +      --localstatedir=/data/var
 +      --sysconfdir=/data/etc
-+      --with-headers=/data/usr/include --disable-default-pie
++      --with-headers=/data/usr/include
        --enable-bind-now
 -      --enable-cet
        --enable-fortify-source
@@ -64,7 +67,7 @@ index 5d9bac1..e7dd656 100644
        --enable-stack-protector=strong
        --enable-systemtap
        --disable-nscd
-@@ -65,10 +70,10 @@ build() {
+@@ -65,10 +73,10 @@ build() {
    (
      cd glibc-build
  
@@ -79,7 +82,7 @@ index 5d9bac1..e7dd656 100644
  
      # Credits @allanmcrae
      # https://github.com/allanmcrae/toolchain/blob/f18604d70c5933c31b51a320978711e4e6791cf1/glibc/PKGBUILD
-@@ -76,8 +81,8 @@ build() {
+@@ -76,8 +84,8 @@ build() {
      # CFLAGS=${CFLAGS/-Wp,-D_FORTIFY_SOURCE=2/}
  
      "${srcdir}"/glibc/configure \
@@ -90,7 +93,7 @@ index 5d9bac1..e7dd656 100644
          "${_configure_flags[@]}"
  
      make -O
-@@ -86,24 +91,6 @@ build() {
+@@ -86,24 +94,6 @@ build() {
      make info
    )
  
@@ -115,7 +118,7 @@ index 5d9bac1..e7dd656 100644
  
    # pregenerate locales here instead of in package
    # functions because localedef does not like fakeroot
-@@ -149,44 +136,44 @@ package_glibc() {
+@@ -149,44 +139,44 @@ package_glibc() {
    optdepends=('gd: for memusagestat'
                'perl: for mtrace')
    install=glibc.install
@@ -175,7 +178,7 @@ index 5d9bac1..e7dd656 100644
  }
  
  package_lib32-glibc() {
-@@ -218,8 +205,8 @@ package_glibc-locales() {
+@@ -218,8 +208,8 @@ package_glibc-locales() {
    depends=("glibc=$pkgver")
  
    cp -r locales/* -t "${pkgdir}"

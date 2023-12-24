@@ -1,0 +1,86 @@
+diff --git PKGBUILD PKGBUILD
+index f1b8129..58a0005 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -24,7 +24,7 @@ provides=(
+   libgprofng.so
+   libsframe.so
+ )
+-backup=('etc/gprofng.rc')
++backup=('data/etc/gprofng.rc')
+ options=(staticlibs !distcc !ccache)
+ source=(git+https://sourceware.org/git/binutils-gdb.git#commit=${_commit}
+         gold-warn-unsupported.patch)
+@@ -37,6 +37,8 @@ prepare() {
+   mkdir -p binutils-build
+ 
+   cd binutils-gdb
++  sed -i '1s|.*|#!/data/usr/bin/sh|' configure {etc,gas,gnulib,gdbsupport,sim,gdbserver,gprofng,intl,ld,libctf,libsframe,libiberty,libdecnumber,opcodes}/configure mkinstalldirs missing ylwrap mkdep depcomp compile ar-lib move-if-change ltmain.sh
++  sed -i 's|#!/bin/sh|#!/data/usr/bin/sh|' binutils/*.sh
+ 
+   # Turn off development mode (-Werror, gas run-time checks, date in sonames)
+   sed -i '/^development=/s/true/false/' bfd/development.sh
+@@ -52,11 +54,11 @@ build() {
+   cd binutils-build
+ 
+   "${srcdir}"/binutils-gdb/configure \
+-    --prefix=/usr \
+-    --sysconfdir="${pkgdir}"/etc \
+-    --with-lib-path=/usr/lib:/usr/local/lib \
+-    --with-bugurl=https://bugs.archlinux.org/ \
+-    --enable-cet \
++    --prefix=/data/usr \
++    --sysconfdir=/data/etc \
++    --libexecdir=/data/usr/lib \
++    --libdir=/data/usr/lib \
++    --with-lib-path=/data/usr/lib:/data/usr/local/lib \
+     --enable-colored-disassembly \
+     --enable-default-execstack=no \
+     --enable-deterministic-archives \
+@@ -81,7 +83,7 @@ build() {
+     --with-pic \
+     --with-system-zlib
+ 
+-  make -O tooldir=/usr
++  make -O tooldir=/data/usr
+ 
+   # Extract the FSF All Permissive License
+   # <https://www.gnu.org/prep/maintain/html_node/License-Notices-for-Other-Files.html>
+@@ -104,28 +106,28 @@ check() {
+ 
+ package() {
+   cd binutils-build
+-  make prefix="${pkgdir}"/usr tooldir="${pkgdir}"/usr install
++  make DESTDIR="${pkgdir}" install
+ 
+   # install PIC version of libiberty
+-  install -m644 libiberty/pic/libiberty.a "${pkgdir}"/usr/lib
++  install -m644 libiberty/pic/libiberty.a "${pkgdir}"/data/usr/lib
+ 
+   # Remove unwanted files
+-  rm -f "${pkgdir}"/usr/share/man/man1/{dlltool,windres,windmc}*
++  rm -f "${pkgdir}"/data/usr/share/man/man1/{dlltool,windres,windmc}*
+ 
+   # No shared linking to these files outside binutils
+-  rm -f "${pkgdir}"/usr/lib/lib{bfd,opcodes}.so
+-  tee "${pkgdir}"/usr/lib/libbfd.so << EOS
++  rm -f "${pkgdir}"/data/usr/lib/lib{bfd,opcodes}.so
++  tee "${pkgdir}"/data/usr/lib/libbfd.so << EOS
+ /* GNU ld script */
+ 
+-INPUT( /usr/lib/libbfd.a -lsframe -liberty -lz -lzstd -ldl )
++INPUT( /data/usr/lib/libbfd.a -lsframe -liberty -lz -lzstd -ldl )
+ EOS
+ 
+-  tee "${pkgdir}"/usr/lib/libopcodes.so << EOS
++  tee "${pkgdir}"/data/usr/lib/libopcodes.so << EOS
+ /* GNU ld script */
+ 
+-INPUT( /usr/lib/libopcodes.a -lbfd )
++INPUT( /data/usr/lib/libopcodes.a -lbfd )
+ EOS
+ 
+   # install FSF All Permissive License
+-  install -Dm644 -t "${pkgdir}"/usr/share/licenses/${pkgname}/ FSFAP
++  install -Dm644 -t "${pkgdir}"/data/usr/share/licenses/${pkgname}/ FSFAP
+ }

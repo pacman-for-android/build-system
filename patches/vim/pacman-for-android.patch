@@ -1,0 +1,258 @@
+diff --git PKGBUILD PKGBUILD
+index 6af0b0f..99fa64e 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -10,7 +10,7 @@
+ # Contributor: Eli Schwartz <eschwartz@archlinux.org>
+ 
+ pkgbase=vim
+-pkgname=('vim' 'gvim' 'vim-runtime')
++pkgname=('vim' 'vim-runtime')
+ pkgver=9.0.2167
+ _versiondir=90
+ pkgrel=1
+@@ -23,10 +23,7 @@ makedepends=(
+   git
+   glibc
+   gpm
+-  gtk3
+-  libcanberra
+   libgcrypt
+-  libxt
+   lua
+   perl
+   python
+@@ -39,10 +36,13 @@ source=(git+https://github.com/vim/vim.git?signed#tag=v${pkgver}
+         archlinux.vim
+         vimdoc.hook)
+ sha256sums=('SKIP'
+-            'b16e85e457397ab2043a7ee0a3c84307c6b4eac157fd0b721694761f25b3ed5b'
+-            'cc3d931129854c298eb22e993ec14c2ad86cc1e70a08a64496f5e06559289972'
+-            '8e9656934d9d7793063230d15a689e10455e6db9b9fe73afa0f294792795d8ae')
+-validpgpkeys=('4F19708816918E19AAE19DEEF3F92DA383FDDE09') # Christian Brabandt <cb@256bit.org>
++            'ee1eff4a91fb3e6b794f2eb7e9f79fd02e9186d253c0214fa4cf19181d71582d'
++            'dff84a160ec340c8958b793c0da2cc5263cb7c159a405f4f4dd6747fc5ec4c66'
++            'eaddd2de2f4d4051cb7d9276c474204add17b468a5f73dae9c659e1e5f04fd02')
++sha512sums=('SKIP'
++            'bd35e6d91ffd50f9b6fc799af3f7e4f3a499b1bef2526cd583574c43cc3547e58c2fbcf842317e68469e431af78d3dbe6687918829703bf7f7f28cf28a62e142'
++            '566eca9b9582fb86f3f3958c4045345e7c100d58de97bc432d96c2dd32af8fbc7d021173adbb787213c9926929e5f713400d3e6ea87f663c95425274fe39dbce'
++            'e386328ac42ce68e79a3183cf4536365d64358770be74c930063639fbc2df429987261cc5c9ccc30e49eede59c87068c32c09a540dbce20da323f12dd46461dd')
+ 
+ prepare() {
+   (cd vim/src
+@@ -50,6 +50,7 @@ prepare() {
+     sed -E 's|^.*(#define SYS_.*VIMRC_FILE.*").*$|\1|g' -i feature.h
+     sed -E 's|^.*(#define VIMRC_FILE.*").*$|\1|g' -i feature.h
+     autoconf
++    sed -i '1s|.*|#!/data/usr/bin/sh|' configure 
+   )
+   cp -a vim gvim
+ }
+@@ -58,8 +59,9 @@ build() {
+   msg2 "Building vim..."
+   (cd vim
+     ./configure \
+-      --prefix=/usr \
+-      --localstatedir=/var/lib/vim \
++      --prefix=/data/usr \
++      --localstatedir=/data/var/lib/vim \
++      --sysconfdir=/data/etc \
+       --with-features=huge \
+       --with-compiledby='Arch Linux' \
+       --enable-gpm \
+@@ -75,29 +77,8 @@ build() {
+       --enable-luainterp=dynamic \
+       --enable-tclinterp=dynamic \
+       --disable-canberra
+-    make
+-  )
+-
+-  msg2 "Building gvim..."
+-  (cd gvim
+-    ./configure \
+-      --prefix=/usr \
+-      --localstatedir=/var/lib/vim \
+-      --with-features=huge \
+-      --with-compiledby='Arch Linux' \
+-      --enable-gpm \
+-      --enable-acl \
+-      --with-x=yes \
+-      --enable-gui=gtk3 \
+-      --enable-multibyte \
+-      --enable-cscope \
+-      --enable-netbeans \
+-      --enable-perlinterp=dynamic \
+-      --enable-python3interp=dynamic \
+-      --enable-rubyinterp=dynamic \
+-      --enable-luainterp=dynamic \
+-      --enable-tclinterp=dynamic \
+-      --enable-canberra
++    sed -i '1s|.*|#!/data/usr/bin/sh|' src/{which.sh,vimtutor,toolcheck,pathdef.sh,link.sh,osdef.sh,installml.sh,install-sh,gvimtutor} \
++      runtime/tools/{vimm,ref,vimspell.sh} runtime/macros/less.sh
+     make
+   )
+ }
+@@ -112,30 +93,30 @@ package_vim-runtime() {
+   optdepends=('sh: support for some tools and macros'
+               'python: demoserver example tool'
+               'gawk: mve tools upport')
+-  backup=('etc/vimrc')
++  backup=('data/etc/vimrc')
+ 
+   cd vim
+ 
+-  make -j1 VIMRCLOC=/etc DESTDIR="${pkgdir}" install
++  make -j1 VIMRCLOC=/data/etc DESTDIR="${pkgdir}" install SHELL=/data/usr/bin/sh
+   # man and bin files belong to 'vim'
+-  rm -r "${pkgdir}"/usr/share/man/ "${pkgdir}"/usr/bin/
++  rm -r "${pkgdir}"/data/usr/share/man/ "${pkgdir}"/data/usr/bin/
+ 
+   # Don't forget logtalk.dict
+   install -Dm 644 runtime/ftplugin/logtalk.dict \
+-    "${pkgdir}"/usr/share/vim/vim${_versiondir}/ftplugin/logtalk.dict
++    "${pkgdir}"/data/usr/share/vim/vim${_versiondir}/ftplugin/logtalk.dict
+ 
+   # rc files
+-  install -Dm 644 "${srcdir}"/vimrc "${pkgdir}"/etc/vimrc
++  install -Dm 644 "${srcdir}"/vimrc "${pkgdir}"/data/etc/vimrc
+   install -Dm 644 "${srcdir}"/archlinux.vim \
+-    "${pkgdir}"/usr/share/vim/vimfiles/archlinux.vim
++    "${pkgdir}"/data/usr/share/vim/vimfiles/archlinux.vim
+ 
+   # no desktop files and icons
+-  rm -r "${pkgdir}"/usr/share/{applications,icons}
++  rm -r "${pkgdir}"/data/usr/share/{applications,icons}
+ 
+   # license
+-  install -dm 755 "${pkgdir}"/usr/share/licenses/vim-runtime
+-  ln -s /usr/share/vim/vim${_versiondir}/doc/uganda.txt \
+-    "${pkgdir}"/usr/share/licenses/vim-runtime/license.txt
++  install -dm 755 "${pkgdir}"/data/usr/share/licenses/vim-runtime
++  ln -s /data/usr/share/vim/vim${_versiondir}/doc/uganda.txt \
++    "${pkgdir}"/data/usr/share/licenses/vim-runtime/license.txt
+ }
+ 
+ package_vim() {
+@@ -153,10 +134,10 @@ package_vim() {
+   make -j1 VIMRCLOC=/etc DESTDIR="${pkgdir}" install
+ 
+   # provided by (n)vi in core
+-  rm "${pkgdir}"/usr/bin/{ex,view}
++  rm "${pkgdir}"/data/usr/bin/{ex,view}
+ 
+   # delete some manpages
+-  find "${pkgdir}"/usr/share/man -type d -name 'man1' 2>/dev/null | \
++  find "${pkgdir}"/data/usr/share/man -type d -name 'man1' 2>/dev/null | \
+     while read _mandir; do
+     cd "${_mandir}"
+     rm -f ex.1 view.1 # provided by (n)vi
+@@ -164,53 +145,17 @@ package_vim() {
+   done
+ 
+   # Runtime provided by runtime package
+-  rm -r "${pkgdir}"/usr/share/vim
++  rm -r "${pkgdir}"/data/usr/share/vim
+ 
+   # remove gvim.desktop as not included
+-  rm "${pkgdir}"/usr/share/applications/gvim.desktop
++  rm "${pkgdir}"/data/usr/share/applications/gvim.desktop
+ 
+   # license
+   install -Dm 644 runtime/doc/uganda.txt \
+-    "${pkgdir}"/usr/share/licenses/${pkgname}/license.txt
+-
+-  # pacman hook for documentation helptags
+-  install -Dm 644 "${srcdir}"/vimdoc.hook "${pkgdir}"/usr/share/libalpm/hooks/vimdoc.hook
+-}
+-
+-package_gvim() {
+-  pkgdesc+=' (with advanced features, such as a GUI)'
+-  depends=("vim-runtime=${pkgver}-${pkgrel}" 'gpm' 'libxt' 'gtk3' 'glibc' 'libgcrypt'
+-           'zlib' 'libcanberra')
+-  optdepends=('python: Python language support'
+-              'ruby: Ruby language support'
+-              'lua: Lua language support'
+-              'perl: Perl language support'
+-              'tcl: Tcl language support')
+-  provides=("vim=${pkgver}-${pkgrel}" "xxd" 'vim-plugin-runtime')
+-  conflicts=('vim-minimal' 'vim')
+-
+-  cd gvim
+-  make -j1 VIMRCLOC=/etc DESTDIR="${pkgdir}" install
+-
+-  # provided by (n)vi in core
+-  rm "${pkgdir}"/usr/bin/{ex,view}
+-
+-  # delete some manpages
+-  find "${pkgdir}"/usr/share/man -type d -name 'man1' 2>/dev/null | \
+-    while read _mandir; do
+-    cd "${_mandir}"
+-    rm -f ex.1 view.1 # provided by (n)vi
+-  done
+-
+-  # need to remove since this is provided by vim-runtime
+-  rm -r "${pkgdir}"/usr/share/vim
+-
+-  # license
+-   install -Dm 644 runtime/doc/uganda.txt \
+-    "${pkgdir}"/usr/share/licenses/${pkgname}/license.txt
++    "${pkgdir}"/data/usr/share/licenses/${pkgname}/license.txt
+ 
+   # pacman hook for documentation helptags
+-  install -Dm 644 "${srcdir}"/vimdoc.hook "${pkgdir}"/usr/share/libalpm/hooks/vimdoc.hook
++  install -Dm 644 "${srcdir}"/vimdoc.hook "${pkgdir}"/data/usr/share/libalpm/hooks/vimdoc.hook
+ }
+ 
+ # vim: ts=2 sw=2 et:
+diff --git archlinux.vim archlinux.vim
+index 2b71ccb..17858ac 100644
+--- archlinux.vim
++++ archlinux.vim
+@@ -2,7 +2,7 @@
+ "
+ " DO NOT EDIT THIS FILE. IT'S OVERWRITTEN UPON UPGRADES.
+ "
+-" Use /etc/vimrc for system-wide and $HOME/.vimrc for personal configuration
++" Use /data/etc/vimrc for system-wide and $HOME/.vimrc for personal configuration
+ " (for details see ':help initialization').
+ "
+ " Use :help '<option>' to see the documentation for the given option.
+diff --git vimdoc.hook vimdoc.hook
+index 07af3cc..1282008 100644
+--- vimdoc.hook
++++ vimdoc.hook
+@@ -3,9 +3,9 @@ Operation = Install
+ Operation = Upgrade
+ Operation= Remove
+ Type = Path
+-Target = usr/share/vim/vimfiles/doc/
++Target = data/usr/share/vim/vimfiles/doc/
+ 
+ [Action]
+ Description = Updating Vim help tags...
+-Exec = /usr/bin/vim -es --cmd ":helptags /usr/share/vim/vimfiles/doc" --cmd ":q"
++Exec = /data/usr/bin/vim -es --cmd ":helptags /data/usr/share/vim/vimfiles/doc" --cmd ":q"
+ When = PostTransaction
+diff --git vimrc vimrc
+index ee36a52..910524c 100644
+--- vimrc
++++ vimrc
+@@ -1,7 +1,7 @@
+ " All system-wide defaults are set in $VIMRUNTIME/archlinux.vim (usually just
+-" /usr/share/vim/vimfiles/archlinux.vim) and sourced by the call to :runtime
++" /data/usr/share/vim/vimfiles/archlinux.vim) and sourced by the call to :runtime
+ " you can find below.  If you wish to change any of those settings, you should
+-" do it in this file (/etc/vimrc), since archlinux.vim will be overwritten
++" do it in this file (/data/etc/vimrc), since archlinux.vim will be overwritten
+ " everytime an upgrade of the vim packages is performed.  It is recommended to
+ " make changes after sourcing archlinux.vim since it alters the value of the
+ " 'compatible' option.
+@@ -11,7 +11,7 @@
+ runtime! archlinux.vim
+ 
+ " If you prefer the old-style vim functionalty, add 'runtime! vimrc_example.vim'
+-" Or better yet, read /usr/share/vim/vim80/vimrc_example.vim or the vim manual
++" Or better yet, read /data/usr/share/vim/vim80/vimrc_example.vim or the vim manual
+ " and configure vim to your own liking!
+ 
+ " do not load defaults if ~/.vimrc is missing

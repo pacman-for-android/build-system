@@ -1,0 +1,57 @@
+diff --git PKGBUILD PKGBUILD
+index 9a2239c..4f15654 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -4,7 +4,7 @@ pkgname=kmod
+ pkgver=31
+ pkgrel=1
+ pkgdesc="Linux kernel module management tools and library"
+-arch=('x86_64')
++arch=(x86_64 aarch64)
+ url='https://git.kernel.org/pub/scm/utils/kernel/kmod/kmod.git'
+ license=('GPL2')
+ depends=('glibc' 'zlib' 'openssl' 'xz' 'zstd')
+@@ -33,7 +33,9 @@ build() {
+   cd "$pkgname-$pkgver"
+ 
+   ./configure \
+-    --sysconfdir=/etc \
++    --prefix=/data/usr \
++    --libdir=/data/usr/lib \
++    --sysconfdir=/data/etc \
+     --with-xz \
+     --with-zlib \
+     --with-zstd \
+@@ -49,7 +51,7 @@ check() {
+   # headers exist. The first useable tree we find is good enough, as these
+   # modules will never be loaded by tests.
+ 
+-  local kdirs=(/usr/lib/modules/*/build/Makefile)
++  local kdirs=(/data/usr/lib/modules/*/build/Makefile)
+   if [[ ! -f ${kdirs[0]} ]]; then
+     printf '==> Unable to find kernel headers to build modules for tests\n' >&2
+     return 1
+@@ -65,18 +67,18 @@ package() {
+   make -C "$pkgname-$pkgver" DESTDIR="$pkgdir" install
+ 
+   # extra directories
+-  install -dm755 "$pkgdir"/{etc,usr/lib}/{depmod,modprobe}.d
++  install -dm755 "$pkgdir"/{data/etc,data/usr/lib}/{depmod,modprobe}.d
+ 
+   for tool in {ins,ls,rm,dep}mod mod{probe,info}; do
+-    ln -s kmod "$pkgdir/usr/bin/$tool"
++    ln -s kmod "$pkgdir/data/usr/bin/$tool"
+   done
+ 
+   # install depmod.d file for search/ dir
+-  install -Dm644 "$srcdir/depmod-search.conf" "$pkgdir/usr/lib/depmod.d/search.conf"
++  install -Dm644 "$srcdir/depmod-search.conf" "$pkgdir/data/usr/lib/depmod.d/search.conf"
+ 
+   # hook
+-  install -Dm644 "$srcdir/depmod.hook" "$pkgdir/usr/share/libalpm/hooks/60-depmod.hook"
+-  install -Dm755 "$srcdir/depmod.script" "$pkgdir/usr/share/libalpm/scripts/depmod"
++  install -Dm644 "$srcdir/depmod.hook" "$pkgdir/data/usr/share/libalpm/hooks/60-depmod.hook"
++  install -Dm755 "$srcdir/depmod.script" "$pkgdir/data/usr/share/libalpm/scripts/depmod"
+ }
+ 
+ # vim: ft=sh syn=sh et

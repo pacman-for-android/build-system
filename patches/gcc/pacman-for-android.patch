@@ -1,8 +1,8 @@
 diff --git PKGBUILD PKGBUILD
-index f716aff..d29439e 100644
+index f716aff..ccb7e29 100644
 --- PKGBUILD
 +++ PKGBUILD
-@@ -7,7 +7,7 @@
+@@ -7,23 +7,19 @@
  # toolchain build order: linux-api-headers->glibc->binutils->gcc->glibc->binutils->gcc
  # NOTE: libtool requires rebuilt with each new gcc version
  
@@ -11,7 +11,12 @@ index f716aff..d29439e 100644
  pkgver=13.2.1
  _majorver=${pkgver%%.*}
  _commit=860b0f0ef787f756c0e293671b4c4622dff63a79
-@@ -19,11 +19,7 @@ url='https://gcc.gnu.org'
+ pkgrel=3
+ pkgdesc='The GNU Compiler Collection'
+-arch=(x86_64)
++arch=(x86_64 aarch64)
+ license=(GPL3 LGPL FDL custom)
+ url='https://gcc.gnu.org'
  makedepends=(
    binutils
    doxygen
@@ -23,7 +28,7 @@ index f716aff..d29439e 100644
    libisl
    libmpc
    python
-@@ -37,19 +33,33 @@ checkdepends=(
+@@ -37,19 +33,31 @@ checkdepends=(
    tcl
  )
  options=(!emptydirs !lto)
@@ -36,7 +41,6 @@ index f716aff..d29439e 100644
 +        libgo-change-pathes.patch
 +        lib-instead-of-lib64.patch
 +        change-default-interpreter-path.patch
-+        gcc-fix-static-compile.patch
 +        fix-build-id-dir.patch
 +        fix-startfile-prefix.patch
  )
@@ -55,13 +59,12 @@ index f716aff..d29439e 100644
 +            'e14918230b5d5927f3a40cb21aa8fd2d41c9ccc79ead181adf72ee010431fb1a'
 +            'afa940c342add10c423e0f577174a94e2ab3ca0f14dd75a2f22dfa44e0efe85e'
 +            '46fe6409f1b930ff225290d38ebf756707747b8d35b3ea1749187fc5d24d1a1b'
-+            '9b6ec477df3352f168b61c2d39dcba8521ef37d1ec9fc84440111eb5a3b3d575'
 +            '35071cb449519612d12cd23b627755c66f36439d441178a16ec0f9e2ce246bc6'
 +            'ff4e64c46296f16e3a8802b3a4b47bc9f063f06eea4c9547336349e8ec9435c2')
  
  prepare() {
    [[ ! -d gcc ]] && ln -s gcc-${pkgver/+/-} gcc
-@@ -64,18 +74,31 @@ prepare() {
+@@ -64,18 +72,30 @@ prepare() {
    # Reproducible gcc-ada
    patch -Np0 < "$srcdir/gcc-ada-repro.patch"
  
@@ -69,7 +72,6 @@ index f716aff..d29439e 100644
 +  patch -Np1 < ../unfilter-default-library-path.patch
 +  # pacman for android
 +  patch -Np0 < ../change-default-interpreter-path.patch
-+  patch -Np1 < ../gcc-fix-static-compile.patch
 +  patch -Np1 < ../libgo-change-pathes.patch
 +  patch -Np0 < ../lib-instead-of-lib64.patch
 +  patch -Np0 < ../fix-build-id-dir.patch
@@ -99,7 +101,7 @@ index f716aff..d29439e 100644
        --with-build-config=bootstrap-lto
        --with-linker-hash-style=gnu
        --with-system-zlib
-@@ -91,7 +114,7 @@ build() {
+@@ -91,7 +111,7 @@ build() {
        --enable-link-serialization=1
        --enable-linker-build-id
        --enable-lto
@@ -108,7 +110,7 @@ index f716aff..d29439e 100644
        --enable-plugin
        --enable-shared
        --enable-threads=posix
-@@ -109,7 +132,7 @@ build() {
+@@ -109,7 +129,7 @@ build() {
    CXXFLAGS=${CXXFLAGS/-Werror=format-security/}
  
    "$srcdir/gcc/configure" \
@@ -117,7 +119,7 @@ index f716aff..d29439e 100644
      --enable-bootstrap \
      "${_confflags[@]:?_confflags unset}"
  
-@@ -157,9 +180,9 @@ check() {
+@@ -157,9 +177,9 @@ check() {
  package_gcc-libs() {
    pkgdesc='Runtime libraries shipped by GCC'
    depends=('glibc>=2.27')
@@ -129,7 +131,7 @@ index f716aff..d29439e 100644
    replaces=($pkgname-multilib libgphobos)
  
    cd gcc-build
-@@ -172,9 +195,8 @@ package_gcc-libs() {
+@@ -172,37 +192,31 @@ package_gcc-libs() {
               libgomp \
               libitm \
               libquadmath \
@@ -141,16 +143,16 @@ index f716aff..d29439e 100644
      make -C $CHOST/$lib DESTDIR="$pkgdir" install-toolexeclibLTLIBRARIES
    done
  
-@@ -183,7 +205,7 @@ package_gcc-libs() {
+   make -C $CHOST/libobjc DESTDIR="$pkgdir" install-libs
+   make -C $CHOST/libstdc++-v3/po DESTDIR="$pkgdir" install
  
-   make -C $CHOST/libphobos DESTDIR="$pkgdir" install
-   rm -rf "$pkgdir"/$_libdir/include/d/
+-  make -C $CHOST/libphobos DESTDIR="$pkgdir" install
+-  rm -rf "$pkgdir"/$_libdir/include/d/
 -  rm -f "$pkgdir"/usr/lib/libgphobos.spec
-+  rm -f "$pkgdir"/data/usr/lib/libgphobos.spec
- 
+-
    for lib in libgomp \
               libitm \
-@@ -191,18 +213,17 @@ package_gcc-libs() {
+              libquadmath; do
      make -C $CHOST/$lib DESTDIR="$pkgdir" install-info
    done
  
@@ -173,7 +175,7 @@ index f716aff..d29439e 100644
    provides=($pkgname-multilib)
    replaces=($pkgname-multilib)
    options=(!emptydirs staticlibs)
-@@ -212,81 +233,69 @@ package_gcc() {
+@@ -212,81 +226,69 @@ package_gcc() {
    make -C gcc DESTDIR="$pkgdir" install-driver install-cpp install-gcc-ar \
      c++.install-common install-headers install-plugin install-lto-wrapper
  
@@ -229,8 +231,8 @@ index f716aff..d29439e 100644
    make -C gcc DESTDIR="$pkgdir" install-man install-info
 -  rm "$pkgdir"/usr/share/man/man1/{gccgo,gfortran,lto-dump,gdc}.1
 -  rm "$pkgdir"/usr/share/info/{gccgo,gfortran,gnat-style,gnat_rm,gnat_ugn,gdc}.info
-+  rm "$pkgdir"/data/usr/share/man/man1/{gccgo,gfortran,lto-dump,gdc}.1
-+  rm "$pkgdir"/data/usr/share/info/{gccgo,gfortran,gdc}.info
++  rm "$pkgdir"/data/usr/share/man/man1/{gccgo,gfortran,lto-dump}.1
++  rm "$pkgdir"/data/usr/share/info/{gccgo,gfortran}.info
  
    make -C libcpp DESTDIR="$pkgdir" install
    make -C gcc DESTDIR="$pkgdir" install-po
@@ -244,7 +246,7 @@ index f716aff..d29439e 100644
 +  # https://github.com/rust-lang/cc-rs/blob/1.0.73/src/lib.rs#L2624
    for binary in {c++,g++,gcc,gcc-ar,gcc-nm,gcc-ranlib}; do
 -    ln -s /usr/bin/${binary} "${pkgdir}"/usr/bin/x86_64-linux-gnu-${binary}
-+    ln -s /data/usr/bin/${binary} "${pkgdir}"/data/usr/bin/riscv64-linux-gnu-${binary}
++    ln -s /data/usr/bin/${binary} "${pkgdir}"/data/usr/bin/aarch64-linux-gnu-${binary}
    done
  
    # POSIX conformance launcher scripts for c89 and c99
@@ -275,7 +277,7 @@ index f716aff..d29439e 100644
  }
  
  package_gcc-fortran() {
-@@ -298,18 +307,16 @@ package_gcc-fortran() {
+@@ -298,18 +300,16 @@ package_gcc-fortran() {
    cd gcc-build
    make -C $CHOST/libgfortran DESTDIR="$pkgdir" install-cafexeclibLTLIBRARIES \
      install-{toolexeclibDATA,nodist_fincludeHEADERS,gfor_cHEADERS}
@@ -298,7 +300,7 @@ index f716aff..d29439e 100644
  }
  
  package_gcc-objc() {
-@@ -324,48 +331,9 @@ package_gcc-objc() {
+@@ -324,48 +324,9 @@ package_gcc-objc() {
    install -m755 gcc/cc1obj{,plus} "$pkgdir/${_libdir}/"
  
    # Install Runtime Library Exception
@@ -350,7 +352,7 @@ index f716aff..d29439e 100644
  }
  
  package_gcc-go() {
-@@ -377,53 +345,16 @@ package_gcc-go() {
+@@ -377,53 +338,16 @@ package_gcc-go() {
  
    cd gcc-build
    make -C $CHOST/libgo DESTDIR="$pkgdir" install-exec-am
@@ -408,7 +410,7 @@ index f716aff..d29439e 100644
  }
  
  package_gcc-d() {
-@@ -436,17 +367,16 @@ package_gcc-d() {
+@@ -436,17 +360,16 @@ package_gcc-d() {
    cd gcc-build
    make -C gcc DESTDIR="$pkgdir" d.install-{common,man,info}
  
@@ -431,7 +433,7 @@ index f716aff..d29439e 100644
  }
  
  #package_gcc-rust() {
-@@ -457,13 +387,13 @@ package_gcc-d() {
+@@ -457,13 +380,13 @@ package_gcc-d() {
  #  cd gcc-build
  #  make -C gcc DESTDIR="$pkgdir" rust.install-{common,man,info}
  #
@@ -449,7 +451,7 @@ index f716aff..d29439e 100644
  #}
  
  package_lto-dump() {
-@@ -474,9 +404,9 @@ package_lto-dump() {
+@@ -474,9 +397,9 @@ package_lto-dump() {
    make -C gcc DESTDIR="$pkgdir" lto.install-{common,man,info}
  
    # Install Runtime Library Exception
@@ -462,7 +464,7 @@ index f716aff..d29439e 100644
  }
  
  package_libgccjit() {
-@@ -487,7 +417,7 @@ package_libgccjit() {
+@@ -487,7 +410,7 @@ package_libgccjit() {
    make -C gcc DESTDIR="$pkgdir" jit.install-common jit.install-info
  
    # Install Runtime Library Exception

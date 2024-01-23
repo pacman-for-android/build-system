@@ -1,0 +1,12 @@
+diff --git PKGBUILD PKGBUILD
+index 9a9c27e..289e618 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -34,6 +34,6 @@ sha256sums=('SKIP')
+ 
+ package() {
+   cd "${pkgname}"
+-  make DESTDIR="$pkgdir" install
++  make DESTDIR="$pkgdir/data" install
+   install -Dm644 LICENSE.md "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE.md"
+ }

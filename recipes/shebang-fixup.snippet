@@ -7,8 +7,10 @@ _pfa_suffix_to_add=$(cat <<'EOF'
     for _pfa_bin in data/usr/bin/*; do
         if file "$_pfa_bin" | grep -q "POSIX shell script"; then
             sed -i '1s|^#![[:space:]]*/bin/sh|#!/data/usr/bin/sh|' "$_pfa_bin"
+            sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' "$_pfa_bin"
         elif file "$_pfa_bin" | grep -q "Bourne-Again shell script"; then
             sed -i '1s|^#![[:space:]]*/bin/bash|#!/data/usr/bin/bash|' "$_pfa_bin"
+            sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' "$_pfa_bin"
         elif file "$_pfa_bin" | grep -q -e "Python script" -e "Perl script"; then
             sed -i '1s|^#![[:space:]]*/usr/bin/env|#!/data/usr/bin/env|' "$_pfa_bin"
         fi

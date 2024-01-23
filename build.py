@@ -1,4 +1,5 @@
 import os
+from os import environ
 from pathlib import Path
 from subprocess import run
 from shutil import copytree
@@ -68,11 +69,10 @@ def build(pkg, repo=None, pkgrel=None, chroot=None, checkout='main'):
             pkg, pkgrel], cwd=sources_dir, check=True)
 
     run(["bash", str(recipes_dir / "fix-arch.bash"), pkg], check=True)
-    env = {}
     if chroot is not None:
-        env['MAKECHROOTPKG_FLAGS'] = f'-l {chroot}'
+        environ['MAKECHROOTPKG_FLAGS'] = f'-l {chroot}'
     run(["bash", str(repo_root / "adbuild"), pkg] +
-        ([repo] if repo else []), cwd=sources_dir, check=True, env=env)
+        ([repo] if repo else []), cwd=sources_dir, check=True)
 
 
 if __name__ == "__main__":

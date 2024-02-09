@@ -11,7 +11,7 @@ colorize
 #
 
 remote_dir="/data/home/shell"
-repo_dir="/home/kxxt/Workspaces/linearch/repos"
+repo_dir="/home/kxxt/Workspaces/pfa/repos"
 
 #
 # Functions

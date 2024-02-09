@@ -256,3 +256,6 @@ catch2
 python-gast
 xsimd
 neofetch
+protobuf
+abseil-cpp
+android-tools

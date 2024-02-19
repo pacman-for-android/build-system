@@ -259,3 +259,6 @@ neofetch
 protobuf
 abseil-cpp
 android-tools
+bat
+libgit2
+http-parser

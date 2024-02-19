@@ -22,7 +22,7 @@ else
   cd "$1"
   if [ -d ".git" ]; then
     git reset --hard
-    git fetch
+    git pull
     git checkout $2
   fi
 fi

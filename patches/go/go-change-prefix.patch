@@ -1,0 +1,144 @@
+diff --git a/go.orig/src/cmd/go/internal/modfetch/codehost/shell.go b/go/src/cmd/go/internal/modfetch/codehost/shell.go
+index eaa0195..49f3000 100644
+--- a/go.orig/src/cmd/go/internal/modfetch/codehost/shell.go
++++ b/go/src/cmd/go/internal/modfetch/codehost/shell.go
+@@ -30,7 +30,7 @@ func usage() {
+ }
+ 
+ func main() {
+-	cfg.GOMODCACHE = "/tmp/vcswork"
++	cfg.GOMODCACHE = "/data/local/tmp/vcswork"
+ 	log.SetFlags(0)
+ 	log.SetPrefix("shell: ")
+ 	flag.Usage = usage
+diff --git a/go.orig/src/cmd/link/internal/arm64/obj.go b/go/src/cmd/link/internal/arm64/obj.go
+index 3d35815..2f29516 100644
+--- a/go.orig/src/cmd/link/internal/arm64/obj.go
++++ b/go/src/cmd/link/internal/arm64/obj.go
+@@ -61,8 +61,8 @@ func Init() (*sys.Arch, ld.Arch) {
+ 
+ 		ELF: ld.ELFArch{
+ 			Androiddynld:   "/system/bin/linker64",
+-			Linuxdynld:     "/lib/ld-linux-aarch64.so.1",
+-			LinuxdynldMusl: "/lib/ld-musl-aarch64.so.1",
++			Linuxdynld:     "/data/usr/lib/ld-linux-aarch64.so.1",
++			LinuxdynldMusl: "/data/usr/lib/ld-musl-aarch64.so.1",
+ 
+ 			Freebsddynld:   "/usr/libexec/ld-elf.so.1",
+ 			Openbsddynld:   "/usr/libexec/ld.so",
+diff --git a/go.orig/src/crypto/x509/root_linux.go b/go/src/crypto/x509/root_linux.go
+index 8e79ccb..9eb8a87 100644
+--- a/go.orig/src/crypto/x509/root_linux.go
++++ b/go/src/crypto/x509/root_linux.go
+@@ -4,29 +4,25 @@
+ 
+ package x509
+ 
+-import "internal/goos"
+-
+ // Possible certificate files; stop after finding one.
+ var certFiles = []string{
+-	"/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
+-	"/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
+-	"/etc/ssl/ca-bundle.pem",                            // OpenSUSE
+-	"/etc/pki/tls/cacert.pem",                           // OpenELEC
+-	"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
+-	"/etc/ssl/cert.pem",                                 // Alpine Linux
++	"/data/etc/ssl/certs/ca-certificates.crt",                // Debian/Ubuntu/Gentoo etc.
++	"/data/etc/pki/tls/certs/ca-bundle.crt",                  // Fedora/RHEL 6
++	"/data/etc/ssl/ca-bundle.pem",                            // OpenSUSE
++	"/data/etc/pki/tls/cacert.pem",                           // OpenELEC
++	"/data/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem", // CentOS/RHEL 7
++	"/data/etc/ssl/cert.pem",                                 // Alpine Linux
+ }
+ 
+ // Possible directories with certificate files; all will be read.
+ var certDirectories = []string{
+-	"/etc/ssl/certs",     // SLES10/SLES11, https://golang.org/issue/12139
+-	"/etc/pki/tls/certs", // Fedora/RHEL
++	"/data/etc/ssl/certs",     // SLES10/SLES11, https://golang.org/issue/12139
++	"/data/etc/pki/tls/certs", // Fedora/RHEL
+ }
+ 
+ func init() {
+-	if goos.IsAndroid == 1 {
+-		certDirectories = append(certDirectories,
+-			"/system/etc/security/cacerts",    // Android system roots
+-			"/data/misc/keychain/certs-added", // User trusted CA folder
+-		)
+-	}
++	certDirectories = append(certDirectories,
++		"/system/etc/security/cacerts",    // Android system roots
++		"/data/misc/keychain/certs-added", // User trusted CA folder
++	)
+ }
+diff --git a/go.orig/src/net/conf.go b/go/src/net/conf.go
+index 15d73cf..74df4e3 100644
+--- a/go.orig/src/net/conf.go
++++ b/go/src/net/conf.go
+@@ -414,7 +414,7 @@ func (c *conf) lookupOrder(r *Resolver, hostname string) (ret hostLookupOrder, d
+ 				var haveMDNSAllow bool
+ 				switch c.mdnsTest {
+ 				case mdnsFromSystem:
+-					_, err := os.Stat("/etc/mdns.allow")
++					_, err := os.Stat("/data/etc/mdns.allow")
+ 					if err != nil && !errors.Is(err, fs.ErrNotExist) {
+ 						// Let libc figure out what is going on.
+ 						return hostLookupCgo, dnsConf
+diff --git a/go.orig/src/net/dnsclient_unix.go b/go/src/net/dnsclient_unix.go
+index c291d5e..7d7cd96 100644
+--- a/go.orig/src/net/dnsclient_unix.go
++++ b/go/src/net/dnsclient_unix.go
+@@ -367,7 +367,7 @@ type resolverConfig struct {
+ var resolvConf resolverConfig
+ 
+ func getSystemDNSConfig() *dnsConfig {
+-	resolvConf.tryUpdate("/etc/resolv.conf")
++	resolvConf.tryUpdate("/data/etc/resolv.conf")
+ 	return resolvConf.dnsConfig.Load()
+ }
+ 
+@@ -375,7 +375,7 @@ func getSystemDNSConfig() *dnsConfig {
+ func (conf *resolverConfig) init() {
+ 	// Set dnsConfig and lastChecked so we don't parse
+ 	// resolv.conf twice the first time.
+-	conf.dnsConfig.Store(dnsReadConfig("/etc/resolv.conf"))
++	conf.dnsConfig.Store(dnsReadConfig("/data/etc/resolv.conf"))
+ 	conf.lastChecked = time.Now()
+ 
+ 	// Prepare ch so that only one update of resolverConfig may
+diff --git a/go.orig/src/net/nss.go b/go/src/net/nss.go
+index 092b515..218b0ac 100644
+--- a/go.orig/src/net/nss.go
++++ b/go/src/net/nss.go
+@@ -13,7 +13,7 @@ import (
+ )
+ 
+ const (
+-	nssConfigPath = "/etc/nsswitch.conf"
++	nssConfigPath = "/data/etc/nsswitch.conf"
+ )
+ 
+ var nssConfig nsswitchConfig
+@@ -40,7 +40,7 @@ func getSystemNSS() *nssConf {
+ 
+ // init initializes conf and is only called via conf.initOnce.
+ func (conf *nsswitchConfig) init() {
+-	conf.nssConf = parseNSSConfFile("/etc/nsswitch.conf")
++	conf.nssConf = parseNSSConfFile("/data/etc/nsswitch.conf")
+ 	conf.lastChecked = time.Now()
+ 	conf.ch = make(chan struct{}, 1)
+ }
+diff --git a/go.orig/src/os/file_unix.go b/go/src/os/file_unix.go
+index a527b23..e21557a 100644
+--- a/go.orig/src/os/file_unix.go
++++ b/go/src/os/file_unix.go
+@@ -394,7 +394,7 @@ func tempDir() string {
+ 		if runtime.GOOS == "android" {
+ 			dir = "/data/local/tmp"
+ 		} else {
+-			dir = "/tmp"
++			dir = "/data/local/tmp"
+ 		}
+ 	}
+ 	return dir

@@ -1,0 +1,1 @@
+(cd "$pkgname/src" && sed -i '1s|#!/usr/bin/env |#!/data/usr/bin/env |' *.bash)

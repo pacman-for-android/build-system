@@ -1,0 +1,23 @@
+diff --git PKGBUILD PKGBUILD
+index 21e608c..46a4f63 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -13,9 +13,7 @@ makedepends=(
+   'git'
+   'cmake'
+   'ninja'
+-  'doxygen'
+   'python'
+-  'graphviz'
+ )
+ provides=('libcpuid.so')
+ _commit=02237e67f5cbff348c63ad5338a70d75909a23b1  # tags/v0.6.4
+@@ -35,7 +33,7 @@ build() {
+     -G Ninja \
+     -D CMAKE_BUILD_TYPE=Release \
+     -D CMAKE_INSTALL_PREFIX=/usr \
+-    -D LIBCPUID_TESTS=ON
++    
+ 
+ 	cmake --build build
+ }

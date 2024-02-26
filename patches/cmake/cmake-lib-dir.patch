@@ -1,8 +1,8 @@
-diff --git cmake-3.27.7.orig/Modules/GNUInstallDirs.cmake cmake-3.27.7/Modules/GNUInstallDirs.cmake
-index 9796854..e84fe82 100644
---- cmake-3.27.7.orig/Modules/GNUInstallDirs.cmake
-+++ cmake-3.27.7/Modules/GNUInstallDirs.cmake
-@@ -286,9 +286,9 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR OR (_libdir_set
+diff --git a/Modules/GNUInstallDirs.cmake b/Modules/GNUInstallDirs.cmake
+index ed34c4a919..ca3aab7643 100644
+--- a/Modules/GNUInstallDirs.cmake
++++ b/Modules/GNUInstallDirs.cmake
+@@ -296,9 +296,9 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR OR (_libdir_set
      elseif(NOT DEFINED __system_type_for_install)
        # not debian, alpine, arch, or conda so rely on CMAKE_SIZEOF_VOID_P:
        if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -14,3 +14,18 @@ index 9796854..e84fe82 100644
          endif()
        endif()
      endif()
+@@ -412,6 +412,14 @@ macro(GNUInstallDirs_get_absolute_install_dir absvar var)
+       else()
+         set(${absvar} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+       endif()
++    elseif("${CMAKE_INSTALL_PREFIX}" MATCHES "^/data/usr/?$")
++      if("${GGAID_dir}" STREQUAL "SYSCONFDIR" OR "${GGAID_dir}" STREQUAL "LOCALSTATEDIR")
++        set(${absvar} "/data/${${var}}")
++      elseif("${GGAID_dir}" STREQUAL "RUNSTATEDIR")
++        set(${absvar} "/data/var/${${var}}")
++      else()
++        set(${absvar} "${CMAKE_INSTALL_PREFIX}/${${var}}")
++      endif()
+     elseif("${CMAKE_INSTALL_PREFIX}" MATCHES "^/opt/" AND NOT "${CMAKE_INSTALL_PREFIX}" MATCHES "^/opt/homebrew/")
+       if("${GGAID_dir}" STREQUAL "SYSCONFDIR" OR "${GGAID_dir}" STREQUAL "LOCALSTATEDIR" OR "${GGAID_dir}" STREQUAL "RUNSTATEDIR")
+         set(${absvar} "/${${var}}${CMAKE_INSTALL_PREFIX}")

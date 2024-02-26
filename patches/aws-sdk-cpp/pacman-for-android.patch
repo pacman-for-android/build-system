@@ -1,0 +1,22 @@
+diff --git PKGBUILD PKGBUILD
+index 63e1327..4e4fc30 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,7 +7,7 @@ pkgdesc='AWS SDK for C++'
+ arch=(x86_64)
+ url='https://github.com/aws/aws-sdk-cpp'
+ license=(Apache)
+-depends=(openssl curl zlib util-linux-libs aws-c-common aws-c-event-stream libpulse aws-crt-cpp)
++depends=(openssl curl zlib util-linux-libs aws-c-common aws-c-event-stream aws-crt-cpp)
+ makedepends=(cmake ninja)
+ source=(aws-sdk-cpp-$pkgver.zip::https://github.com/aws/aws-sdk-cpp/archive/$pkgver.zip)
+ sha256sums=('d83aab6ac80ad2463ec4b4811f6dd386c7377f9a736c86e94fdd1e8d19c6220a')
+@@ -18,7 +18,7 @@ build() {
+   cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCUSTOM_MEMORY_MANAGEMENT=OFF -DENABLE_TESTING=OFF -DBUILD_DEPS=OFF \
+       -DCMAKE_MODULE_PATH=/usr/lib/cmake \
+       -S . -B build -G Ninja
+-  ninja -C build
++  ninja -C build -j4
+ }
+ 
+ package() {

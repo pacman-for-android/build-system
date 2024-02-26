@@ -1,0 +1,13 @@
+diff --git PKGBUILD PKGBUILD
+index 9403b64..a6ec45b 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -15,7 +15,7 @@ sha256sums=('38110cd6b5beb3e99e55a3d55593565ebc8f2b15d190afa4d76f4265d45daf9e')
+ build() {
+   cd aws-c-cal-$pkgver
+ 
+-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=ON -S . -B build
++  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib -DBUILD_SHARED_LIBS=ON -S . -B build
+   cmake --build build
+ }
+ 

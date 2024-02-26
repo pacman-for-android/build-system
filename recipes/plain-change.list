@@ -266,3 +266,17 @@ go
 ollama
 kernel-headers-musl
 nix-busybox
+aws-c-common
+aws-c-cal
+aws-checksums
+aws-c-io
+s2n-tls
+aws-c-event-stream
+aws-c-compression
+aws-c-http
+aws-c-sdkutils
+aws-c-auth
+aws-c-mqtt
+aws-c-s3
+aws-crt-cpp
+aws-sdk-cpp

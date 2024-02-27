@@ -1,0 +1,127 @@
+diff --git PKGBUILD PKGBUILD
+index a07a37f..14201b3 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -27,7 +27,6 @@ makedepends=(
+   'editline'
+   'gc'
+   'git'
+-  'graphviz'
+   'gtest'
+   'jq'
+   'libcpuid'
+@@ -53,13 +52,13 @@ source=(
+ sha512sums=('SKIP'
+             '46fdd1134626da81f0ec3ada47b69bb803277e8dd379052db5d8606475f5ff7ece63c8ae41b5f8ba6d2174465e1e977212c648a11c853b199e11b2014789a661'
+             '6511badd6e4c71d9b7f6e6a87ea521a9727a5569ecf48dca11ee0d04151adf083453dcf7e05eadd5c28278fd8aee9fe44bbb90067f5fc8067c99c5e9665affd9'
+-            '879bc28faf877a560ac67500388d9774ec890391ef08d367a18f98ef17faeef8c7d208e747fed1fd501b07c3a3b2286af436eb1bd137de2d8ea9a9c32b48088a'
+-            'da5b6d449f8e69c9211e6bd97b1ce4c6e398da5a34fea9a8a89a28084489a1549188e52f66ce7536903afeb75e690e764188daac20a16227b66cc14a72b7311a')
++            '7b42ed9647a6d1fa10d17ff9923ed94ac7d293f8bcd0bcc12e71bb28d5875b94a03e5b43eb8baec2cea3278cfc7632bfbcf936d73abc5d512c9eee1ee7b154b3'
++            '94cc38b36961967e4d65190c63d039bbb1e0b85bde9c81adf2524a70cb3de5d6db65b277b4fa3cd1601d4e47b2b3618719b29ac5ee63b702d53cea5261859741')
+ b2sums=('SKIP'
+         'e79ceeb12faf7c38a167857ded355a74511c1d98e7fcb1efb589072c16b35f017239e6723bad04e13ed5b16cbebc91923363e36c130bf51d06a66a4d4ef54f6b'
+         'e92b8192bae89f0bc8c62371fbe63b4bfd68352699e5ea6900bf4313fd573322a06cb85074b292a005cbf644a50abbb67694f9458f071b0fd223d220494f6b6c'
+-        'bffaabbe8c9efee79c7761e72a189796f35c0a40805b53fe954c10590ab9bfd0a321b45c7050ddf30810e36fa4431768f36f19fdc55085c0396ac5338b88f839'
+-        '57610fc5fa370f9c3df50ab411dfe154b273349b3b321ad01768cacdf371e27603e8446a4e4269ccf4ca6cdb59b4a70fdcac59cda29c47eb7e7224555ec7e2e2')
++        '87203de40e3a230ead39d6b661e678cf859fa85d6c4aa012fe26b542f4bc05464a9a434bc5f0331afa9d1bbecb72705b18242f4cdbdcce2ac3d2c816bddba8f2'
++        '5e12c900b7fc6d59740dbeca3393059e0b457f97a2c2f3bf001d92cb2a263738ff86abe683608a994923fd8761154d438590ffabacc663dacbb7c1e04607f26c')
+ 
+ pkgver() {
+   cd "$pkgbase"
+@@ -79,11 +78,12 @@ build() {
+   autoreconf -vfi
+ 
+   ./configure \
+-    --prefix=/usr \
+-    --libexecdir="/usr/lib/$pkgname" \
+-    --sysconfdir=/etc \
+-    --localstatedir=/nix/var \
+-    --with-sandbox-shell=/usr/lib/nix/busybox \
++    --prefix=/data/usr \
++    --libexecdir="/data/usr/lib/$pkgname" \
++    --sysconfdir=/data/etc \
++    --with-store-dir=/data/nix/store \
++    --localstatedir=/data/nix/var \
++    --with-sandbox-shell=/data/usr/lib/nix/busybox \
+     --enable-static=rapidcheck \
+     --disable-gc \
+     --enable-lto
+@@ -118,7 +118,7 @@ package_nix() {
+     'openssl' 'libcrypto.so'
+     'sqlite' 'libsqlite3.so'
+   )
+-  backup=("etc/$pkgname/$pkgname.conf")
++  backup=("data/etc/$pkgname/$pkgname.conf")
+   install="$pkgname.install"
+ 
+   # package
+@@ -127,29 +127,31 @@ package_nix() {
+ 
+   # remove unused files - FS#73120
+   rm -rf \
+-    "$pkgdir/etc/init" \
+-    "$pkgdir/etc/profile.d/nix.sh" \
+-    "$pkgdir/etc/profile.d/nix.fish"
++    "$pkgdir/data/etc/init" \
++    "$pkgdir/data/etc/profile.d/nix.sh" \
++    "$pkgdir/data/etc/profile.d/nix.fish"
+ 
+   # systemd integration - FS#79747
+-  install -vDm644 "$srcdir/tmpfiles.conf" "$pkgdir/usr/lib/tmpfiles.d/$pkgname-daemon.conf"
+-  install -vDm644 "$srcdir/sysusers.conf" "$pkgdir/usr/lib/sysusers.d/$pkgname-daemon.conf"
+-  install -vDm644 "$srcdir/user.tmpfiles.conf" "$pkgdir/usr/share/user-tmpfiles.d/$pkgname-daemon.conf"
++  install -vDm644 "$srcdir/tmpfiles.conf" "$pkgdir/data/usr/lib/tmpfiles.d/$pkgname-daemon.conf"
++  install -vDm644 "$srcdir/sysusers.conf" "$pkgdir/data/usr/lib/sysusers.d/$pkgname-daemon.conf"
++  install -vDm644 "$srcdir/user.tmpfiles.conf" "$pkgdir/data/usr/share/user-tmpfiles.d/$pkgname-daemon.conf"
+ 
+   # configuration
+-  install -vDm644 "$srcdir/nix.conf" -t "$pkgdir/etc/$pkgname"
++  install -vDm644 "$srcdir/nix.conf" -t "$pkgdir/data/etc/$pkgname"
+ 
+   # move docs out for nix-docs split-package
+-  mv "$pkgdir/usr/share/doc" nix-docs
++  mv "$pkgdir/data/usr/share/doc" nix-docs
+ 
+   # license
+-  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644 COPYING "$pkgdir/data/usr/share/licenses/$pkgname/LICENSE"
++
++  install -vd "$pkgdir/data/nix" -m755
+ }
+ 
+ package_nix-docs() {
+   pkgdesc+=" (documentation)"
+ 
+   cd "$pkgbase"
+-  install -vd "$pkgdir/usr/share/doc"
+-  mv nix-docs/nix "$pkgdir/usr/share/doc"
++  install -vd "$pkgdir/data/usr/share/doc"
++  mv nix-docs/nix "$pkgdir/data/usr/share/doc"
+ }
+diff --git tmpfiles.conf tmpfiles.conf
+index b8be20e..e924078 100644
+--- tmpfiles.conf
++++ tmpfiles.conf
+@@ -1,4 +1,4 @@
+-d /nix/var/nix/daemon-socket 770 root nix-users
+-e! /nix/var/nix/daemon-socket - - - 0
+-d /nix/var/nix/gcroots/per-user 1777
+-d /nix/var/nix/profiles/per-user 1777
++d /data/nix/var/nix/daemon-socket 770 root nix-users
++e! /data/nix/var/nix/daemon-socket - - - 0
++d /data/nix/var/nix/gcroots/per-user 1777
++d /data/nix/var/nix/profiles/per-user 1777
+diff --git user.tmpfiles.conf user.tmpfiles.conf
+index 1bc54f0..22e7a96 100644
+--- user.tmpfiles.conf
++++ user.tmpfiles.conf
+@@ -1,5 +1,5 @@
+ d %h/.nix-defexpr
+-L %h/.nix-defexpr/channels_root - - - - /nix/var/nix/profiles/per-user/root/channels
+-d /nix/var/nix/profiles/per-user/%u 0755
+-L %h/.nix-profile - - - - /nix/var/nix/profiles/per-user/%u/profile
+-d /nix/var/nix/gcroots/per-user/%u 0755
++L %h/.nix-defexpr/channels_root - - - - /data/nix/var/nix/profiles/per-user/root/channels
++d /data/nix/var/nix/profiles/per-user/%u 0755
++L %h/.nix-profile - - - - /data/nix/var/nix/profiles/per-user/%u/profile
++d /data/nix/var/nix/gcroots/per-user/%u 0755

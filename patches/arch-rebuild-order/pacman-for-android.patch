@@ -1,0 +1,22 @@
+diff --git PKGBUILD PKGBUILD
+index 0f9a743..3a0ced5 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -10,12 +10,15 @@ license=('MIT')
+ depends=('glibc' 'libalpm.so')
+ makedepends=('cargo' 'mandown' 'git')
+ groups=('archlinux-tools')
+-source=(git+https://gitlab.archlinux.org/archlinux/arch-rebuild-order.git#tag=v$pkgver?signed)
+-sha512sums=('SKIP')
++source=(git+https://gitlab.archlinux.org/archlinux/arch-rebuild-order.git#tag=v$pkgver?signed
++        rebuild-order-change-prefix.patch)
++sha512sums=('SKIP'
++            'f741f0f6480d7927206c221d23c39cb6ad2a5b2266c21e04320c91a0c2de19985d0dfad96093fcf23f4bc6b21b6fa19288d0125ff7e7352c4f70b4d1f6364134')
+ validpgpkeys=("E499C79F53C96A54E572FEE1C06086337C50773E")
+ 
+ prepare() {
+   cd ${pkgname}
++  patch -Np1 -i ../rebuild-order-change-prefix.patch
+   cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+ }
+ 

@@ -285,3 +285,9 @@ lowdown
 libmd
 mdbook
 mdbook-linkcheck
+rapidcheck
+editline
+libtool
+libsodium
+mandown
+arch-rebuild-order

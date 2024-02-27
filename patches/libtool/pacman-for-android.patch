@@ -1,0 +1,26 @@
+diff --git PKGBUILD PKGBUILD
+index 6907218..9b540ac 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -18,9 +18,9 @@ license=(GPL)
+ depends=(sh tar glibc)
+ makedepends=("gcc>=$_gccver" git help2man)
+ checkdepends=(gcc-fortran)
+-provides=("libltdl=$pkgver" "libtool-multilib=$pkgver")
+-conflicts=(libltdl libtool-multilib)
+-replaces=(libltdl libtool-multilib)
++provides=("libltdl=$pkgver")
++conflicts=(libltdl)
++replaces=(libltdl)
+ source=(git+https://git.savannah.gnu.org/git/libtool.git#commit=$_commit
+         git+https://git.savannah.gnu.org/git/gnulib.git
+         gnulib-bootstrap::git+https://github.com/gnulib-modules/bootstrap.git
+@@ -63,7 +63,7 @@ prepare() {
+ 
+ build() {
+   cd libtool
+-  ./configure --prefix=/usr lt_cv_sys_lib_dlsearch_path_spec="/usr/lib /usr/lib32"
++  ./configure --prefix=/usr lt_cv_sys_lib_dlsearch_path_spec="/usr/lib"
+   make
+ }
+ 

@@ -1,0 +1,66 @@
+# /data/usr/etc/profile
+
+# Append "$1" to $PATH when not already in.
+# This function API is accessible to scripts in /etc/profile.d
+append_path () {
+    case ":$PATH:" in
+        *:"$1":*)
+            ;;
+        *)
+            PATH="${PATH:+$PATH:}$1"
+    esac
+}
+
+prepend_path () {
+    case ":$PATH:" in
+        *:"$1":*)
+            ;;
+        *)
+            PATH="$1""${PATH:+:$PATH}"
+    esac
+}
+
+# Append our default paths
+prepend_path '/data/usr/local/sbin'
+prepend_path '/data/usr/local/bin'
+prepend_path '/data/usr/bin'
+
+# Force PATH to be environment
+export PATH
+
+# Load profiles from /data/etc/profile.d
+if test -d /data/etc/profile.d/; then
+	for profile in /data/etc/profile.d/*.sh; do
+		test -r "$profile" && . "$profile"
+	done
+	unset profile
+fi
+
+# Unload our profile API functions
+unset -f append_path
+unset -f prepend_path
+
+# Source global bash config, when interactive but not posix or sh mode
+if test "$BASH" &&\
+   test "$PS1" &&\
+   test -z "$POSIXLY_CORRECT" &&\
+   test "${0#-}" != sh &&\
+   test -r /data/etc/bash.bashrc
+then
+	. /data/etc/bash.bashrc
+fi
+
+# Termcap is outdated, old, and crusty, kill it.
+unset TERMCAP
+
+# Man is much better than us at figuring this out
+unset MANPATH
+
+# Set some default values
+export TMPDIR=/data/local/tmp
+export SHELL=/data/usr/bin/bash
+export LANG=C.UTF-8
+export USER="$(id -un)"
+export HOME="$(getent passwd "$USER" | cut -d: -f6)"
+# Use /data/local/tmp as home for users other than shell and root.
+HOME=${HOME:-/data/local/tmp}

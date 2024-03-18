@@ -1,0 +1,248 @@
+diff --git PKGBUILD PKGBUILD
+index f929ea1..dbe26ad 100644
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,7 +5,7 @@ pkgname=pacman
+ pkgver=6.1.0
+ pkgrel=3
+ pkgdesc="A library-based package manager with dependency support"
+-arch=('x86_64')
++arch=('x86_64' 'aarch64')
+ url="https://www.archlinux.org/pacman/"
+ license=('GPL-2.0-or-later')
+ depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme' 'pacman-mirrorlist'
+@@ -14,8 +14,8 @@ makedepends=('meson' 'asciidoc' 'doxygen')
+ checkdepends=('python' 'fakechroot')
+ optdepends=('perl-locale-gettext: translation support in makepkg-template')
+ provides=('libalpm.so')
+-backup=(etc/pacman.conf
+-        etc/makepkg.conf)
++backup=(data/etc/pacman.conf
++        data/etc/makepkg.conf)
+ options=('strip')
+ validpgpkeys=('6645B0A8C7005E78DB1D7864F99FFE0FEAE999BD'  # Allan McRae <allan@archlinux.org>
+               'B8151B117037781095514CA7BBDFFC92306B1121') # Andrew Gregory (pacman) <andrew@archlinux.org>
+@@ -28,7 +28,8 @@ source=(https://gitlab.archlinux.org/pacman/pacman/-/releases/v$pkgver/downloads
+         "$pkgname-drop-result-warn.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/111eed0251238a9d3f90e76d62f2ac01aeccce48.patch"
+         "$pkgname-fix-debugedit.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/bae9594ac1806ce30f2af1de27c49bb101a00d44.patch"
+         pacman.conf
+-        makepkg.conf)
++        makepkg.conf
++        "0001-change-prefix.patch" "0002-no-etc-mtab.patch" "0003-makepkg-fixes.patch" "0004-use-data-local-tmp-instead-of-tmp.patch")
+ sha256sums=('5a60ac6e6bf995ba6140c7d038c34448df1f3daa4ae7141d2cad88eeb5f1f9d9'
+             'SKIP'
+             'b3bce9d662e189e8e49013b818f255d08494a57e13fc264625f852f087d3def2'
+@@ -38,8 +39,12 @@ sha256sums=('5a60ac6e6bf995ba6140c7d038c34448df1f3daa4ae7141d2cad88eeb5f1f9d9'
+             '2bbfe40539513ff5775aaf900644c8985ef618f5df9af856b9d571e2501365b0'
+             '160515b741aadc876a67f213029f5f62a51ff072ea4aaeb687bbe614035bf72f'
+             '1f4e4cc54332e60c9da2bdabf9a80dc11db466535f1a0be298cbf654f0723721'
+-            '656c4d4cb8cb12adbf178fc8cb2fd25f8c285d6572bbdbb24d865d00e0d5a85a'
+-            '2465d495cb275dce434eb3bfe4d293a223e301b968c14861aea42bc7c60404ef')
++            '95a7a6c69387199f283cd00ee71238574b2c1c9e3dc83871c261e4003d323797'
++            '894999f3695681eb80cc8b82171b5afb0918955f1bce5ed79c958b8a32663f0e'
++            'aabad6c29763ec4425e5f6b9b6c5bb2af63950d62bce917a35afb49308581d46'
++            '05c183c989cf4f8d3a1373b7dd079387d712f27f3e09d19cd171b2790d08c4fc'
++            'f3bba91282516219876e47c6c3a4bc60deafcc8461cc249a6c5d32fdb6e37224'
++            '2ca901b49dae2af6ac2c80825abde8afea38d3603a3d734b4994e0e334709f64')
+ 
+ prepare() {
+   cd "$pkgname-$pkgver"
+@@ -61,17 +66,22 @@ prepare() {
+       fi
+     done
+   fi
++
++  sed -i '1s|.*|#!/data/usr/bin/sh|' build-aux/{update-copyright,meson-make-symlink.sh}
+ }
+ 
+ build() {
+   cd "$pkgname-$pkgver"
+ 
+-  meson --prefix=/usr \
++  meson --prefix=/data/usr \
+         --buildtype=plain \
+         -Ddoc=enabled \
+         -Ddoxygen=enabled \
+-        -Dscriptlet-shell=/usr/bin/bash \
+-        -Dldconfig=/usr/bin/ldconfig \
++        -Dscriptlet-shell=/data/usr/bin/bash \
++        -Dldconfig=/data/usr/bin/ldconfig \
++        -Droot-dir=/ \
++        -Dsysconfdir=/data/etc \
++        -Dlocalstatedir=/data/var \
+         build
+ 
+   meson compile -C build
+@@ -89,11 +99,11 @@ package() {
+   DESTDIR="$pkgdir" meson install -C build
+ 
+   # install Arch specific stuff
+-  install -dm755 "$pkgdir/etc"
+-  install -m644 "$srcdir/pacman.conf" "$pkgdir/etc"
+-  install -m644 "$srcdir/makepkg.conf" "$pkgdir/etc"
++  install -dm755 "$pkgdir/data/etc"
++  install -m644 "$srcdir/pacman.conf" "$pkgdir/data/etc"
++  install -m644 "$srcdir/makepkg.conf" "$pkgdir/data/etc"
+ 
+-  local wantsdir="$pkgdir/usr/lib/systemd/system/sockets.target.wants"
++  local wantsdir="$pkgdir/data/usr/lib/systemd/system/sockets.target.wants"
+   install -dm755 "$wantsdir"
+ 
+   local unit
+diff --git makepkg.conf makepkg.conf
+index ac4c95f..d1d3cdc 100644
+--- makepkg.conf
++++ makepkg.conf
+@@ -2,7 +2,7 @@
+ # shellcheck disable=2034
+ 
+ #
+-# /etc/makepkg.conf
++# /data/etc/makepkg.conf
+ #
+ 
+ #########################################################################
+@@ -11,17 +11,17 @@
+ #
+ #-- The download utilities that makepkg should use to acquire sources
+ #  Format: 'protocol::agent'
+-DLAGENTS=('file::/usr/bin/curl -qgC - -o %o %u'
+-          'ftp::/usr/bin/curl -qgfC - --ftp-pasv --retry 3 --retry-delay 3 -o %o %u'
+-          'http::/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
+-          'https::/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
+-          'rsync::/usr/bin/rsync --no-motd -z %u %o'
+-          'scp::/usr/bin/scp -C %u %o')
++DLAGENTS=('file::/data/usr/bin/curl -qgC - -o %o %u'
++          'ftp::/data/usr/bin/curl -qgfC - --ftp-pasv --retry 3 --retry-delay 3 -o %o %u'
++          'http::/data/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
++          'https::/data/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
++          'rsync::/data/usr/bin/rsync --no-motd -z %u %o'
++          'scp::/data/usr/bin/scp -C %u %o')
+ 
+ # Other common tools:
+-# /usr/bin/snarf
+-# /usr/bin/lftpget -c
+-# /usr/bin/wget
++# /data/usr/bin/snarf
++# /data/usr/bin/lftpget -c
++# /data/usr/bin/wget
+ 
+ #-- The package required by makepkg to download VCS sources
+ #  Format: 'protocol::package'
+@@ -35,12 +35,12 @@ VCSCLIENTS=('bzr::breezy'
+ # ARCHITECTURE, COMPILE FLAGS
+ #########################################################################
+ #
+-CARCH="x86_64"
+-CHOST="x86_64-pc-linux-gnu"
++CARCH="aarch64"
++CHOST="aarch64-unknown-linux-gnu"
+ 
+ #-- Compiler and Linker Flags
+ #CPPFLAGS=""
+-CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt -fexceptions \
++CFLAGS="-march=armv8-a -O2 -pipe -fno-plt -fexceptions \
+         -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
+         -fstack-clash-protection -fcf-protection \
+         -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
+@@ -56,6 +56,12 @@ DEBUG_CFLAGS="-g"
+ DEBUG_CXXFLAGS="$DEBUG_CFLAGS"
+ DEBUG_RUSTFLAGS="-C debuginfo=2"
+ 
++#########################################################################
++# Pacman for Android Specific
++#########################################################################
++# To avoid /bin/sh as much as possible. They cause trouble in fakeroot because they link against bionic libc!
++export CONFIG_SHELL=/data/usr/bin/bash
++
+ #########################################################################
+ # BUILD ENVIRONMENT
+ #########################################################################
+@@ -108,15 +114,15 @@ STRIP_SHARED="--strip-unneeded"
+ #-- Options to be used when stripping static libraries. See `man strip' for details.
+ STRIP_STATIC="--strip-debug"
+ #-- Manual (man and info) directories to compress (if zipman is specified)
+-MAN_DIRS=({usr{,/local}{,/share},opt/*}/{man,info})
++MAN_DIRS=(data/{usr{,/local}{,/share},opt/*}/{man,info})
+ #-- Doc directories to remove (if !docs is specified)
+-DOC_DIRS=(usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc})
++DOC_DIRS=(data/usr/{,local/}{,share/}{doc,gtk-doc} data/opt/*/{doc,gtk-doc})
+ #-- Files to be removed from all packages (if purge is specified)
+-PURGE_TARGETS=(usr/{,share}/info/dir .packlist *.pod)
++PURGE_TARGETS=(data/usr/{,share}/info/dir .packlist *.pod)
+ #-- Directory to store source code in for debug packages
+-DBGSRCDIR="/usr/src/debug"
++DBGSRCDIR="/data/usr/src/debug"
+ #-- Prefix and directories for library autodeps
+-LIB_DIRS=('lib:usr/lib' 'lib32:usr/lib32')
++LIB_DIRS=('lib:data/usr/lib')
+ 
+ #########################################################################
+ # PACKAGE OUTPUT
+diff --git pacman.conf pacman.conf
+index 4cfecc5..00f8aae 100644
+--- pacman.conf
++++ pacman.conf
+@@ -1,5 +1,5 @@
+ #
+-# /etc/pacman.conf
++# /data/etc/pacman.conf
+ #
+ # See the pacman.conf(5) manpage for option and repository directives
+ 
+@@ -10,14 +10,14 @@
+ # The following paths are commented out with their default values listed.
+ # If you wish to use different paths, uncomment and update the paths.
+ #RootDir     = /
+-#DBPath      = /var/lib/pacman/
+-#CacheDir    = /var/cache/pacman/pkg/
+-#LogFile     = /var/log/pacman.log
+-#GPGDir      = /etc/pacman.d/gnupg/
+-#HookDir     = /etc/pacman.d/hooks/
++#DBPath      = /data/var/lib/pacman/
++#CacheDir    = /data/var/cache/pacman/pkg/
++#LogFile     = /data/var/log/pacman.log
++#GPGDir      = /data/etc/pacman.d/gnupg/
++#HookDir     = /data/etc/pacman.d/hooks/
+ HoldPkg     = pacman glibc
+-#XferCommand = /usr/bin/curl -L -C - -f -o %o %u
+-#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
++#XferCommand = /data/usr/bin/curl -L -C - -f -o %o %u
++#XferCommand = /data/usr/bin/wget --passive-ftp -c -O %o %u
+ #CleanMethod = KeepInstalled
+ Architecture = auto
+ 
+@@ -70,25 +70,27 @@ LocalFileSigLevel = Optional
+ # after the header, and they will be used before the default mirrors.
+ 
+ #[core-testing]
+-#Include = /etc/pacman.d/mirrorlist
++#Include = /data/etc/pacman.d/mirrorlist
+ 
+ [core]
+-Include = /etc/pacman.d/mirrorlist
++Include = /data/etc/pacman.d/mirrorlist
++SigLevel = Optional TrustAll
+ 
+ #[extra-testing]
+-#Include = /etc/pacman.d/mirrorlist
++#Include = /data/etc/pacman.d/mirrorlist
+ 
+ [extra]
+-Include = /etc/pacman.d/mirrorlist
++Include = /data/etc/pacman.d/mirrorlist
++SigLevel = Optional TrustAll
+ 
+ # If you want to run 32 bit applications on your x86_64 system,
+ # enable the multilib repositories as required here.
+ 
+ #[multilib-testing]
+-#Include = /etc/pacman.d/mirrorlist
++#Include = /data/etc/pacman.d/mirrorlist
+ 
+ #[multilib]
+-#Include = /etc/pacman.d/mirrorlist
++#Include = /data/etc/pacman.d/mirrorlist
+ 
+ # An example of a custom package repository.  See the pacman manpage for
+ # tips on creating your own repositories.

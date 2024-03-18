@@ -1,0 +1,30 @@
+From 341feeae67cd7700c5ad89344dc6f9e1e35a9215 Mon Sep 17 00:00:00 2001
+From: kxxt <rsworktech@outlook.com>
+Date: Mon, 21 Aug 2023 14:24:08 +0800
+Subject: [PATCH 2/4] no /etc/mtab
+
+---
+ lib/libalpm/diskspace.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/libalpm/diskspace.c b/lib/libalpm/diskspace.c
+index 45eb5f7f..88ddeb03 100644
+--- a/lib/libalpm/diskspace.c
++++ b/lib/libalpm/diskspace.c
+@@ -102,11 +102,11 @@ static alpm_list_t *mount_point_list(alpm_handle_t *handle)
+ 	struct mntent *mnt;
+ 	FILE *fp;
+ 
+-	fp = setmntent(MOUNTED, "r");
++	fp = setmntent("/proc/self/mounts", "r");
+ 
+ 	if(fp == NULL) {
+ 		_alpm_log(handle, ALPM_LOG_ERROR, _("could not open file: %s: %s\n"),
+-				MOUNTED, strerror(errno));
++				"/proc/self/mounts", strerror(errno));
+ 		return NULL;
+ 	}
+ 
+-- 
+2.44.0
+

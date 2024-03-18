@@ -1,0 +1,70 @@
+From 5f81737ffe8b6e8c6b4aaa376a0c4c2e0029d53c Mon Sep 17 00:00:00 2001
+From: kxxt <rsworktech@outlook.com>
+Date: Mon, 21 Aug 2023 21:25:04 +0800
+Subject: [PATCH 3/4] makepkg fixes
+
+---
+ etc/makepkg.conf.in   | 22 +++++++++++-----------
+ scripts/makepkg.sh.in |  2 +-
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/etc/makepkg.conf.in b/etc/makepkg.conf.in
+index 0a9c05e2..0b7f88c4 100644
+--- a/etc/makepkg.conf.in
++++ b/etc/makepkg.conf.in
+@@ -9,12 +9,12 @@
+ #
+ #-- The download utilities that makepkg should use to acquire sources
+ #  Format: 'protocol::agent'
+-DLAGENTS=('file::/usr/bin/curl -qgC - -o %o %u'
+-          'ftp::/usr/bin/curl -qgfC - --ftp-pasv --retry 3 --retry-delay 3 -o %o %u'
+-          'http::/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
+-          'https::/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
+-          'rsync::/usr/bin/rsync --no-motd -z %u %o'
+-          'scp::/usr/bin/scp -C %u %o')
++DLAGENTS=('file::/data/usr/bin/curl -qgC - -o %o %u'
++          'ftp::/data/usr/bin/curl -qgfC - --ftp-pasv --retry 3 --retry-delay 3 -o %o %u'
++          'http::/data/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
++          'https::/data/usr/bin/curl -qgb "" -fLC - --retry 3 --retry-delay 3 -o %o %u'
++          'rsync::/data/usr/bin/rsync --no-motd -z %u %o'
++          'scp::/data/usr/bin/scp -C %u %o')
+ 
+ # Other common tools:
+ # /usr/bin/snarf
+@@ -101,15 +101,15 @@ STRIP_SHARED="@STRIP_SHARED@"
+ #-- Options to be used when stripping static libraries. See `man strip' for details.
+ STRIP_STATIC="@STRIP_STATIC@"
+ #-- Manual (man and info) directories to compress (if zipman is specified)
+-MAN_DIRS=({usr{,/local}{,/share},opt/*}/{man,info})
++MAN_DIRS=(data/{usr{,/local}{,/share},opt/*}/{man,info})
+ #-- Doc directories to remove (if !docs is specified)
+-DOC_DIRS=(usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc})
++DOC_DIRS=(data/usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc})
+ #-- Files to be removed from all packages (if purge is specified)
+-PURGE_TARGETS=(usr/{,share}/info/dir .packlist *.pod)
++PURGE_TARGETS=(data/usr/{,share}/info/dir .packlist *.pod)
+ #-- Directory to store source code in for debug packages
+-DBGSRCDIR="/usr/src/debug"
++DBGSRCDIR="/data/usr/src/debug"
+ #-- Prefix and directories for library autodeps
+-LIB_DIRS=('lib:usr/lib' 'lib32:usr/lib32')
++LIB_DIRS=('lib:data/usr/lib' 'lib32:data/usr/lib32')
+ 
+ #########################################################################
+ # PACKAGE OUTPUT
+diff --git a/scripts/makepkg.sh.in b/scripts/makepkg.sh.in
+index fe70b060..e7afd6b3 100644
+--- a/scripts/makepkg.sh.in
++++ b/scripts/makepkg.sh.in
+@@ -624,7 +624,7 @@ create_package() {
+ 	msg2 "$(gettext "Compressing package...")"
+ 	# TODO: Maybe this can be set globally for robustness
+ 	shopt -s -o pipefail
+-	list_package_files | LANG=C bsdtar --no-fflags @BSDTAR_NO_READ_SPARSE@ -cnf - --null --files-from - |
++	list_package_files | LANG=C bsdtar --no-fflags -cnf - --null --files-from - |
+ 		compress_as "$PKGEXT" > "${pkg_file}" || ret=$?
+ 
+ 	shopt -u -o pipefail
+-- 
+2.44.0
+

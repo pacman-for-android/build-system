@@ -1,0 +1,33 @@
+From 6dfd8392e6f62e2507cacd94378c420d4f906c5d Mon Sep 17 00:00:00 2001
+From: kxxt <rsworktech@outlook.com>
+Date: Tue, 22 Aug 2023 09:29:50 +0800
+Subject: [PATCH 4/4] use /data/local/tmp instead of /tmp
+
+---
+ lib/libalpm/trans.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/libalpm/trans.c b/lib/libalpm/trans.c
+index 5e2458e9..888db450 100644
+--- a/lib/libalpm/trans.c
++++ b/lib/libalpm/trans.c
+@@ -358,13 +358,13 @@ int _alpm_runscriptlet(alpm_handle_t *handle, const char *filepath,
+ 	strcpy(arg1, "-c");
+ 
+ 	/* create a directory in $root/tmp/ for copying/extracting the scriptlet */
+-	len = strlen(handle->root) + strlen("tmp/alpm_XXXXXX") + 1;
++	len = strlen(handle->root) + strlen("data/local/tmp/alpm_XXXXXX") + 1;
+ 	MALLOC(tmpdir, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+-	snprintf(tmpdir, len, "%stmp/", handle->root);
++	snprintf(tmpdir, len, "%sdata/local/tmp/", handle->root);
+ 	if(access(tmpdir, F_OK) != 0) {
+ 		_alpm_makepath_mode(tmpdir, 01777);
+ 	}
+-	snprintf(tmpdir, len, "%stmp/alpm_XXXXXX", handle->root);
++	snprintf(tmpdir, len, "%sdata/local/tmp/alpm_XXXXXX", handle->root);
+ 	if(mkdtemp(tmpdir) == NULL) {
+ 		_alpm_log(handle, ALPM_LOG_ERROR, _("could not create temp directory\n"));
+ 		free(tmpdir);
+-- 
+2.44.0
+

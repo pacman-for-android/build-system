@@ -40,8 +40,8 @@ index a07a37f..14201b3 100644
 +    --prefix=/data/usr \
 +    --libexecdir="/data/usr/lib/$pkgname" \
 +    --sysconfdir=/data/etc \
-+    --with-store-dir=/data/nix/store \
-+    --localstatedir=/data/nix/var \
++    --with-store-dir=/nix/store \
++    --localstatedir=/nix/var \
 +    --with-sandbox-shell=/data/usr/lib/nix/busybox \
      --enable-static=rapidcheck \
      --disable-gc \

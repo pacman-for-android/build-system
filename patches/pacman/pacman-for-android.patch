@@ -1,5 +1,5 @@
 diff --git PKGBUILD PKGBUILD
-index f929ea1..dbe26ad 100644
+index f929ea1..13e7905 100644
 --- PKGBUILD
 +++ PKGBUILD
 @@ -5,7 +5,7 @@ pkgname=pacman
@@ -39,7 +39,7 @@ index f929ea1..dbe26ad 100644
 -            '656c4d4cb8cb12adbf178fc8cb2fd25f8c285d6572bbdbb24d865d00e0d5a85a'
 -            '2465d495cb275dce434eb3bfe4d293a223e301b968c14861aea42bc7c60404ef')
 +            '95a7a6c69387199f283cd00ee71238574b2c1c9e3dc83871c261e4003d323797'
-+            '894999f3695681eb80cc8b82171b5afb0918955f1bce5ed79c958b8a32663f0e'
++            '1dde875c76fa1630cf615dc86b6fd2be43a501d21cfdfe4a253b448d897590d4'
 +            'aabad6c29763ec4425e5f6b9b6c5bb2af63950d62bce917a35afb49308581d46'
 +            '05c183c989cf4f8d3a1373b7dd079387d712f27f3e09d19cd171b2790d08c4fc'
 +            'f3bba91282516219876e47c6c3a4bc60deafcc8461cc249a6c5d32fdb6e37224'

@@ -90,7 +90,7 @@ index f929ea1..dbe26ad 100644
  
    local unit
 diff --git makepkg.conf makepkg.conf
-index ac4c95f..d1d3cdc 100644
+index ac4c95f..b59955d 100644
 --- makepkg.conf
 +++ makepkg.conf
 @@ -2,7 +2,7 @@
@@ -129,7 +129,7 @@ index ac4c95f..d1d3cdc 100644
  
  #-- The package required by makepkg to download VCS sources
  #  Format: 'protocol::package'
-@@ -35,12 +35,12 @@ VCSCLIENTS=('bzr::breezy'
+@@ -35,14 +35,14 @@ VCSCLIENTS=('bzr::breezy'
  # ARCHITECTURE, COMPILE FLAGS
  #########################################################################
  #
@@ -143,8 +143,11 @@ index ac4c95f..d1d3cdc 100644
 -CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt -fexceptions \
 +CFLAGS="-march=armv8-a -O2 -pipe -fno-plt -fexceptions \
          -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
-         -fstack-clash-protection -fcf-protection \
+-        -fstack-clash-protection -fcf-protection \
++        -fstack-clash-protection \
          -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
+ CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
+ LDFLAGS="-Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now \
 @@ -56,6 +56,12 @@ DEBUG_CFLAGS="-g"
  DEBUG_CXXFLAGS="$DEBUG_CFLAGS"
  DEBUG_RUSTFLAGS="-C debuginfo=2"
